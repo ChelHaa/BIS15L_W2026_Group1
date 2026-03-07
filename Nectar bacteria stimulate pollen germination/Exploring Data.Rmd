@@ -3,6 +3,56 @@ title: "Exploring Data"
 output: html_document
 ---
 ```{r}
+library(tidyverse)
+library(janitor)
+library(naniar)
+library(lubridate)
+library(shiny)
+```
 
+```{r}
+dose_dependence<-read_csv("C:/Users/jenny/OneDrive/桌面/BIS15L_W2026_Group1/Nectar bacteria stimulate pollen germination/doi_10_25338_B8BS75__v20210727/dose_dependence_data.csv")%>%
+  clean_names()
+```
+
+```{r}
+glimpse(dose_dependence)
+```
+```{r}
+summary(dose_dependence)
+```
+
+#graph of mircriobe treatment vs. germinated 
+```{r}
+dose_dependence%>%
+  mutate(timepoint = factor(timepoint,
+         levels = c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=microbetreatment,
+             y=proportion_germinated,
+             fill=microbetreatment))+
+  geom_boxplot()+
+  facet_wrap(~timepoint, nrow = 2)+
+  theme_minimal()+
+  labs(title="Concentration of A.pollinisSCC477 and Proportion Germinated",
+       x="Microbe Treatment",
+       y="Mean Proportion Germinated")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r}
+dose_dependence %>%
+  mutate(timepoint = factor(timepoint,
+         levels = c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=microbetreatment,
+             y=allgerm,
+             fill=microbetreatment))+
+  geom_boxplot()+
+  facet_wrap(~timepoint, nrow = 2)+
+  labs(title="Concentration of A.pollinisSCC477 and All Germinated",
+       x="Microbe Treatment",
+       y="Proportion of Germinated")+
+  theme_minimal()+
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
 ```
 
