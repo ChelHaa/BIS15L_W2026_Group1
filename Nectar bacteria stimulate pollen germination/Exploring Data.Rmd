@@ -1,5 +1,5 @@
 ---
-title: "Exploring Data"
+title: "Dose_Dependence"
 output: html_document
 ---
 ```{r}
@@ -10,6 +10,7 @@ library(lubridate)
 library(shiny)
 ```
 
+#dose_dependence dataset
 ```{r}
 dose_dependence<-read_csv("C:/Users/jenny/OneDrive/桌面/BIS15L_W2026_Group1/Nectar bacteria stimulate pollen germination/doi_10_25338_B8BS75__v20210727/dose_dependence_data.csv")%>%
   clean_names()
@@ -25,34 +26,79 @@ summary(dose_dependence)
 #graph of mircriobe treatment vs. germinated 
 ```{r}
 dose_dependence%>%
-  mutate(timepoint = factor(timepoint,
-         levels = c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
   ggplot(aes(x=microbetreatment,
              y=proportion_germinated,
              fill=microbetreatment))+
   geom_boxplot()+
-  facet_wrap(~timepoint, nrow = 2)+
+  facet_wrap(~timepoint, nrow=2)+
   theme_minimal()+
   labs(title="Concentration of A.pollinisSCC477 and Proportion Germinated",
        x="Microbe Treatment",
        y="Mean Proportion Germinated")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
-
 
 ```{r}
 dose_dependence %>%
-  mutate(timepoint = factor(timepoint,
-         levels = c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
   ggplot(aes(x=microbetreatment,
              y=allgerm,
              fill=microbetreatment))+
   geom_boxplot()+
-  facet_wrap(~timepoint, nrow = 2)+
+  facet_wrap(~timepoint, nrow=2)+
   labs(title="Concentration of A.pollinisSCC477 and All Germinated",
        x="Microbe Treatment",
        y="Proportion of Germinated")+
   theme_minimal()+
-  theme(axis.text.x=element_text(angle = 45, hjust = 1))
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
 
+#whether treatment accelerates germination
+```{r}
+dose_dependence <- dose_dependence %>%
+  mutate(time_minutes=case_when(
+    timepoint=="15m" ~ 15,
+           timepoint=="45m" ~ 45,
+           timepoint=="90m" ~ 90,
+           timepoint=="3h"  ~ 180,
+           timepoint=="4h"  ~ 240,
+           timepoint=="6h"  ~ 360,
+           timepoint=="12h" ~ 720,
+           timepoint=="24h" ~ 1440))
+```
+
+```{r}
+dose_dependence%>%
+  group_by(microbetreatment, time_minutes)%>%
+  summarize(mean_germ=mean(allgerm, na.rm=TRUE)) %>%
+  ggplot(aes(time_minutes, mean_germ,
+             color=microbetreatment,
+             group=microbetreatment))+
+  geom_point()+
+  geom_line()+
+  labs(
+    title="Relationship Between Concentration of A.pollinisSCC477 and Proportion of All Germinated",
+    x="Time point",
+    y="Proportion of All Germinated")+
+  theme_minimal()
+```
+
+#graph of mircriobe treatment vs. brust 
+```{r}
+dose_dependence%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=microbetreatment,
+             y=allburst,
+             fill=microbetreatment))+
+  geom_boxplot()+
+  facet_wrap(~timepoint, nrow=2)+
+  theme_minimal()+
+  labs(title="Concentration of A.pollinisSCC477 and Proportion Burst",
+       x="Microbe Treatment",
+       y="Mean Proportion Germinated")+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
