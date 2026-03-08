@@ -23,7 +23,6 @@ glimpse(dose_dependence)
 summary(dose_dependence)
 ```
 
-- actually microbe treatment and initial OD is the same but only the initial OD make the treatment into a number
 #graph of mircriobe treatment vs. germinated 
 ```{r}
 dose_dependence%>%
@@ -103,49 +102,3 @@ dose_dependence%>%
        y="Mean Proportion Germinated")+
   theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
-
-#graph of initial OD vs. germination
-- removed sterile BK because its od is 0
-```{r}
-dose_dependence%>%
-  filter(microbetreatment!="(sterile BK)")%>%
-  mutate(timepoint=factor(timepoint,
-         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
-  pivot_longer(cols=c(allgerm, allburst),
-               names_to="response",
-               values_to="value")%>%
-  ggplot(aes(x=initial_od,
-             y=value,
-             color=microbetreatment))+
-  geom_point(alpha = 0.7, size=2)+
-  geom_smooth(method=lm, se=T)+
-  facet_grid(response~timepoint)+
-  theme_minimal()+
-  labs(title="Relationship between OD and Germination/Bursting",
-       x="Initial OD",
-       y="Proportion",
-       color="Microbe Treatment")+
-  scale_x_log10(breaks=c(0.001, 0.01, 0.1))+
-  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="bottom")
-```
-#relationship between brust and germination
--not so useful graph--> don't use
-```{r}
-dose_dependence%>%
-  mutate(timepoint=factor(timepoint,
-         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
-  ggplot(aes(x=allgerm,
-             y=allburst,
-             color=microbetreatment))+
-  geom_point()+
-  geom_smooth(method=lm, se=T)+
-  facet_wrap(~timepoint, nrow=2)+
-  theme(legend.position="bottom")+
-  labs(
-    title="Relationship between Germination and Bursting",
-    x="Proportion Germinated",
-    y="Proportion Burst",
-    color="Microbe Treatment"
-  )
-```
-
