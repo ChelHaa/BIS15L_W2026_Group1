@@ -185,7 +185,8 @@ yeast_benefit <- read_csv("yeast_benefit_data.csv") %>%
 
 ```{r}
 germination_burst <- read_csv("germ_AN.csv") %>%
-  clean_names()
+  clean_names() %>% 
+  rename(pollen_treatment = pollentreatment)
 ```
 
 ##Data on protein in solution after pollen (germinable or ungerminable or no pollen) exposure to SCC477 (or no inoculation).
@@ -213,6 +214,27 @@ pollen_microbe_new %>%
   coord_flip()+
   labs(x = "Time Point", y = "Mean # Germinated", fill = "Microbe Group", title="Mean # Germinated Pollen Grains with Different Microbial Groups Over Time")
 ```
+```{r}
+glimpse(germination_burst)
+```
+make 2 tables for the GP and UP for each treatment
+```{r}
+germination_burst %>%
+  filter(pollen_treatment == "GP") %>%
+  group_by(treatment) %>%
+  summarise(mean_germinated = mean(allgerm),
+            mean_burst = mean(allburst)) %>% 
+  arrange(desc(mean_germinated))
+```
+```{r}
+germination_burst %>%
+  filter(pollen_treatment == "UP") %>%
+  group_by(treatment) %>%
+  summarise(mean_germinated = mean(allgerm),
+            mean_burst = mean(allburst)) %>% 
+  arrange(desc(mean_germinated))
+```
+
 
 ## 2) How does the percentage of pollen germinated change over time with different microbial species? (Relationship between pollen germination and time)
 ```{r}
@@ -275,7 +297,17 @@ protein_density%>%
 
 ##Shiny App
 ```{r}
+library(shiny)
 
+ui <- fluidPage(
+  
+)
+
+server <- function(input, output, session) {
+  
+}
+
+shinyApp(ui, server)
 ```
 
 
