@@ -11,7 +11,7 @@ runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "C:/users/hache/OneDrive/Documents/Desktop/BIS15L_W2026_Group1/Data")
 ```
 
 ## Load the libraries 
@@ -26,6 +26,7 @@ library(ggplot2)
 ``` 
 
 ##Contents of the Project: 
+
 
 ##Todo List
 
@@ -53,10 +54,69 @@ library(ggplot2)
     - exploring data
     - graphs
     
-Data we used:
+
+##Insert all the Data:
+```{r}
+getwd()
+```
+```{r}
+pollen_microbe<-read_csv("pollen_microbe_data.csv")%>%
+  clean_names()
+```
+```{r}
+dose_dependence<-read_csv("dose_dependence_data.csv")%>%
+  clean_names()
+```
+```{r}
+a_pollinis <- read_csv("Apollinis_benefit_data.csv") %>%
+  clean_names()
+```
+
+```{r}
+yeast_benefit <- read_csv("yeast_benefit_data.csv") %>%
+  clean_names()
+```
+```{r}
+germination_burst <- read_csv("germ_AN.csv") %>%
+  clean_names()
+```
+```{r}
+protein_density <- read_csv("Lowry_data1.csv") %>%
+  clean_names()
+```
 
 
 
-    
-    
-    
+
+## What is the percentage of Pollen germinated with microbial species compared to a control variable (yeast)?
+```{r}
+
+```
+
+
+## How does the percentage of pollen germinated change over time with different microbial species? (Relationship between pollen germination and time)
+```{r}
+
+```
+
+## How does the microbial density change over time with different pollen conditions? (Relationship between bacterial density and pollen germination)
+```{r}
+
+```
+
+## Microbial growth with different pollen conditions (A.pollinis vs. Yeast (known not to induce germination process))
+```{r}
+
+```
+
+## Does pollen germination increase microbial growth?   
+```{r}
+names(protein_density)
+```
+Change the names of pollentreatment to pollen_treatment and microbetreatment to microbe_treatment
+```{r}
+protein_density %>%
+  rename(pollen_treatment = pollentreatment,
+         microbe_treatment = microbetreatment)
+```
+
