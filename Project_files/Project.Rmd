@@ -14,7 +14,8 @@ runtime: shiny
 knitr::opts_knit$set(root.dir = "C:/users/hache/OneDrive/Documents/Desktop/BIS15L_W2026_Group1/Data")
 ```
 
-## Load the libraries 
+## Load the libraries
+
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(janitor)
@@ -23,100 +24,191 @@ library("ggthemes")
 library("RColorBrewer")
 library("paletteer")
 library(ggplot2)
-``` 
+```
 
-##Contents of the Project: 
-
+##Contents of the Project:
 
 ##Todo List
 
-1. Clean Data
-    - make nice names with underscores 
-    - change the ns (not significant) to NA so that we can use naniar to visualize missing data and also so that it         doesn't mess with our graphs.
-    
-2. Introduction - what is our research topic? List ideas below:
-    - pollen germination and bursting across different microbial treatments and how this affects the microbial density
-    
-3. Methods - how will we analyze
-    - use tidyverse to clean data and make graphs, use shiny to make an interactive app to explore the data
-    
-4. Visuals - graphs, what are our key variables?
-    - microbe treatment, time point, proportion germinated, proportion burst, microbial density
+1.  Clean Data
+    -   make nice names with underscores
+    -   change the ns (not significant) to NA so that we can use naniar to visualize missing data and also so that it doesn't mess with our graphs.
+2.  Introduction - what is our research topic? List ideas below:
+    -   pollen germination and bursting across different microbial treatments and how this affects the microbial density
+3.  Methods - how will we analyze
+    -   use tidyverse to clean data and make graphs, use shiny to make an interactive app to explore the data
+4.  Visuals - graphs, what are our key variables?
+    -   microbe treatment, time point, proportion germinated, proportion burst, microbial density
+5.  Conclusion:
+    -   summarize what we found and how it relates to the research question.
+    -   future directions: what are some next steps we can take to further explore this topic?
+6.  Organize Repository (going off the example given, but we can refine)
+    -   datasets folder
+    -   background info folder - need to check if we have any
+    -   shiny app folder
+    -   exploring data
+    -   graphs
 
-5. Conclusion: 
-    - summarize what we found and how it relates to the research question. 
-    - future directions: what are some next steps we can take to further explore this topic?
+##Data Exploration for each dataset:
 
-6. Organize Repository (going off the example given, but we can refine)
-    - datasets folder
-    - background info folder - need to check if we have any
-    - shiny app folder
-    - exploring data
-    - graphs
-    
+##Data on pollen germination and bursting with different microbial treatments
 
-##Insert all the Data:
-```{r}
-getwd()
-```
-```{r}
+```{r echo=TRUE}
 pollen_microbe<-read_csv("pollen_microbe_data.csv")%>%
   clean_names()
 ```
+
+Change the names of microbetreatment to microbe_treatment
+
+```{r}
+pollen_microbe_new <- pollen_microbe %>%
+   rename(microbe_treatment = microbetreatment)
+```
+
+Change NA values to 0 in columns with NA
+
+```{r}
+pollen_microbe_new <- pollen_microbe_new %>%
+  mutate(across(where(is.numeric), ~replace_na(., 0)))
+```
+
+```{r}
+pollen_microbe_new %>% 
+  distinct(microbe_group, microbe_treatment)
+```
+
+Arrange the data from the most germinated to the least germinated for each time point and microbe treatment
+
+```{r}
+pollen_microbe_new %>%
+  select(timepoint, microbe_group, microbe_treatment, allgerm) %>%
+  arrange(desc(allgerm))
+```
+
+```{r echo=FALSE}
+pollen_microbe_new %>% 
+  group_by(timepoint, microbe_group) %>%
+  ggplot(aes(x = timepoint, y = allgerm, fill = microbe_group))+
+  geom_col(position = "dodge")+
+  theme_bw()
+```
+
+The acinetobacter has the largest amount of germination at each timepoint, followed by the control, then the yeast. The control pectin degrader was used to rule out the idea that simply breaking open the pollen (by degrading pectin in the inner layer of the pollen grain) would result in germination; we can see that the control pectin degrader has very low germination, so we can rule out that idea. The yeast treatment also has very low germination, which suggests that the yeast is not inducing germination. The acinetobacter treatment has the highest germination, which suggests that the acinetobacter is inducing germination.
+
+"Evidence presented here—including minimal effects of Pectobacterium, a known pectinase producer, and a lack of detected pectinase activity by Acinetobacter—suggest that pectinases alone are not responsible for the germination or bursting phenotype."
+
+We can see if the type of microbial group has any correlation with the number of germinated pollen (pollen tubes are fully grown), the number of grains that burst (pollen tubes are not fully grown and the pollen grain is broken), and the number of grains that burst at the tip.
+
+```{r echo=TRUE}
+pollen_microbe_new %>%
+  group_by(microbe_group)%>%
+  ggplot(aes(x=timepoint, y=number_burst, fill=microbe_group))+
+  geom_col(position = "dodge")
+```
+
+
+
+
+
+##Data on proportion of grains germinated with different dilutions of A. pollinisSCC477 over time.
+
 ```{r}
 dose_dependence<-read_csv("dose_dependence_data.csv")%>%
   clean_names()
 ```
+
+##Data on microbial hemocytometer counts of A. pollinis, when provided different pollen treatments.
+
 ```{r}
 a_pollinis <- read_csv("Apollinis_benefit_data.csv") %>%
   clean_names()
 ```
 
+##Data on microbial hemocytometer counts of M. reukaufii, when provided different pollen treatments.
+
 ```{r}
 yeast_benefit <- read_csv("yeast_benefit_data.csv") %>%
   clean_names()
 ```
+
+##Data on germination and bursting after pollen (germinable or ungerminable) exposure to SCC477 (or no inoculation).
+
 ```{r}
 germination_burst <- read_csv("germ_AN.csv") %>%
   clean_names()
 ```
+
+##Data on protein in solution after pollen (germinable or ungerminable or no pollen) exposure to SCC477 (or no inoculation).
+
 ```{r}
 protein_density <- read_csv("Lowry_data1.csv") %>%
   clean_names()
 ```
 
+## What is the average number of Pollen germinated with microbial species compared to other microbial groups?
 
-
-
-## What is the percentage of Pollen germinated with microbial species compared to a control variable (yeast)?
 ```{r}
+pollen_microbe_new %>%
+  group_by(microbe_group, timepoint) %>%
+  summarise(mean_germinated = mean(allgerm),
+            mean_burst = mean(allburst)) %>% 
+  ggplot(aes(x = timepoint, y = mean_germinated, fill = microbe_group))+
+  geom_col(position = "dodge")+
+  theme_bw()+
+  labs(x = "Time Point", y = "Mean Germinated", fill = "Microbe Group", title="Mean Germinated Pollen Grains with Different Microbial Groups Over Time")
+```
+
+Distribution of pollen germination with different microbial species overtime using a density plot:
+
+```{r}
+pollen_microbe_new %>%
+  ggplot(aes(x=timepoint, y=prop_germ, fill=microbe_group))+
+  geom_col(position = "dodge")
 
 ```
 
-
 ## How does the percentage of pollen germinated change over time with different microbial species? (Relationship between pollen germination and time)
+
 ```{r}
 
 ```
 
 ## How does the microbial density change over time with different pollen conditions? (Relationship between bacterial density and pollen germination)
+
 ```{r}
 
 ```
 
 ## Microbial growth with different pollen conditions (A.pollinis vs. Yeast (known not to induce germination process))
+
 ```{r}
 
 ```
 
-## Does pollen germination increase microbial growth?   
+## Does pollen germination increase microbial growth?
+
 ```{r}
 names(protein_density)
 ```
+
 Change the names of pollentreatment to pollen_treatment and microbetreatment to microbe_treatment
+
 ```{r}
-protein_density %>%
+protein_density_new <- protein_density %>%
   rename(pollen_treatment = pollentreatment,
          microbe_treatment = microbetreatment)
 ```
 
+```{r}
+names(protein_density_new)
+```
+
+```{r}
+protein_density_new %>%
+  group_by(pollen_treatment, microbe_treatment) %>%
+  summarise(mean_protein = mean(protein)) %>%
+  ggplot(aes(x = pollen_treatment, y = mean_protein, fill = microbe_treatment))+
+  geom_col(position = "dodge")+
+  theme_bw()+
+  labs(x = "Pollen Treatment", y = "Mean Protein Concentration", fill = "Microbe Treatment", title="Mean Protein Concentration with Different Pollen and Microbe Treatments")
+```
