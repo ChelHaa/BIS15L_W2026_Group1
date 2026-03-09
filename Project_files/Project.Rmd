@@ -1,0 +1,62 @@
+---
+title: "Pollen Germination and Microbe Treatment"
+author: "Chueh-Ju Kuo and Chelsea Ha"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load the libraries 
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(janitor)
+library(naniar)
+library("ggthemes")
+library("RColorBrewer")
+library("paletteer")
+library(ggplot2)
+``` 
+
+##Contents of the Project: 
+
+##Todo List
+
+1. Clean Data
+    - make nice names with underscores 
+    - change the ns (not significant) to NA so that we can use naniar to visualize missing data and also so that it         doesn't mess with our graphs.
+    
+2. Introduction - what is our research topic? List ideas below:
+    - pollen germination and bursting across different microbial treatments and how this affects the microbial density
+    
+3. Methods - how will we analyze
+    - use tidyverse to clean data and make graphs, use shiny to make an interactive app to explore the data
+    
+4. Visuals - graphs, what are our key variables?
+    - microbe treatment, time point, proportion germinated, proportion burst, microbial density
+
+5. Conclusion: 
+    - summarize what we found and how it relates to the research question. 
+    - future directions: what are some next steps we can take to further explore this topic?
+
+6. Organize Repository (going off the example given, but we can refine)
+    - datasets folder
+    - background info folder - need to check if we have any
+    - shiny app folder
+    - exploring data
+    - graphs
+    
+Data we used:
+
+
+
+    
+    
+    
