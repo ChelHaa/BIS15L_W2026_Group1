@@ -284,9 +284,253 @@ protein_density%>%
 ```
 
 
+##Exploration of Pollen Microbe Data (Jenny)
+
+```{r}
+glimpse(pollen_microbe)
+```
+```{r}
+summary(pollen_microbe)
+```
+
+#distribution of microbe group
+```{r}
+pollen_microbe %>%
+  ggplot(aes(x=microbe_group, fill=microbe_group))+
+  geom_bar()+
+  theme_minimal()+
+  labs(
+    title = "Distribution of Microbe Groups",
+    x="Microbe Group",
+    y="Count")+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
+
+#microbe group and all germination
+```{r}
+pollen_microbe%>%
+  ggplot(aes(x=microbe_group, y=allgerm, fill=microbe_group))+
+  geom_boxplot()+
+  facet_wrap(~timepoint)+
+  theme_minimal()+
+  labs(
+    title="All Germination of Different Microbe Group by Timepoints",
+    x="Microbe Group",
+    y="All Germination")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+#microbe group and all germination(distribution)
+```{r}
+pollen_microbe%>%
+  ggplot(aes(x = prop_germ))+
+  geom_histogram(
+    binwidth = 0.05,
+    fill = "lightblue",
+    color = "black")+
+  theme_minimal()+
+  facet_wrap(~microbe_group)+
+  labs(
+    title="Distribution of Proportion Germinated",
+    x="Proportion Germinated",
+    y="Count")
+```
+
+#microbe group and all  burst
+```{r}
+pollen_microbe%>%
+  ggplot(aes(x=microbe_group, y=allburst, fill=microbe_group))+
+  geom_boxplot()+
+  facet_wrap(~timepoint)+
+  theme_minimal()+
+  labs(
+    title="All Burst of Different Microbe Group by Timepoints",
+    x="Microbe Group",
+    y="All Burst")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+#microbe group and all germination(distribution)
+```{r}
+pollen_microbe%>%
+  ggplot(aes(x=prop_burst))+
+  geom_histogram(
+    binwidth = 0.05,
+    fill = "lightblue",
+    color = "black")+
+  theme_minimal()+
+  facet_wrap(~microbe_group)+
+  labs(
+    title="Distribution of Proportion Burst",
+    x="Proportion Burst",
+    y="Count")
+```
+
+#germination and time
+```{r}
+pollen_microbe%>%
+  group_by(microbe_group, timepoint)%>%
+  summarize(mean_germ = mean(prop_germ, na.rm = TRUE)) %>%
+  ggplot(aes(x=timepoint, 
+             y=mean_germ, 
+             color=microbe_group))+
+  geom_line()+
+  geom_point()+
+  theme_minimal()+
+  labs(
+    title="Mean Germination Over Time for Each Microbe Group",
+    x="Timepoint",
+    y="Mean Proportion Germinated",
+    color="Microbe Group")
+```
+
+#standard OD & all germination
+```{r}
+pollen_microbe %>%
+  ggplot(aes(x=factor(standardized_od_plate), y=allgerm, fill=microbe_group)) +
+  geom_boxplot()+
+  theme_minimal()+
+  facet_wrap(~timepoint)+
+  labs(
+    title="Effect of OD on Germination",
+    x="Initial OD",
+    y="All Germination")
+```
 
 
 
+## Exploration of Dose Dependency Data (Jenny)
+```{r}
+glimpse(dose_dependence)
+```
+```{r}
+summary(dose_dependence)
+```
 
+- actually microbe treatment and initial OD is the same but only the initial OD make the treatment into a number
+#graph of mircriobe treatment vs. germinated 
+```{r}
+dose_dependence%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=microbetreatment,
+             y=proportion_germinated,
+             fill=microbetreatment))+
+  geom_boxplot()+
+  facet_wrap(~timepoint, nrow=2)+
+  theme_minimal()+
+  labs(title="Concentration of A.pollinisSCC477 and Proportion Germinated",
+       x="Microbe Treatment",
+       y="Mean Proportion Germinated")+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
+
+```{r}
+dose_dependence %>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=microbetreatment,
+             y=allgerm,
+             fill=microbetreatment))+
+  geom_boxplot()+
+  facet_wrap(~timepoint, nrow=2)+
+  labs(title="Concentration of A.pollinisSCC477 and All Germinated",
+       x="Microbe Treatment",
+       y="Proportion of Germinated")+
+  theme_minimal()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
+
+#whether treatment accelerates germination
+```{r}
+dose_dependence <- dose_dependence %>%
+  mutate(time_minutes=case_when(
+    timepoint=="15m" ~ 15,
+           timepoint=="45m" ~ 45,
+           timepoint=="90m" ~ 90,
+           timepoint=="3h"  ~ 180,
+           timepoint=="4h"  ~ 240,
+           timepoint=="6h"  ~ 360,
+           timepoint=="12h" ~ 720,
+           timepoint=="24h" ~ 1440))
+```
+
+```{r}
+dose_dependence%>%
+  group_by(microbetreatment, time_minutes)%>%
+  summarize(mean_germ=mean(allgerm, na.rm=TRUE)) %>%
+  ggplot(aes(time_minutes, mean_germ,
+             color=microbetreatment,
+             group=microbetreatment))+
+  geom_point()+
+  geom_line()+
+  labs(
+    title="Relationship Between Concentration of A.pollinisSCC477 and Proportion of All Germinated",
+    x="Time point",
+    y="Proportion of All Germinated")+
+  theme_minimal()
+```
+
+#graph of mircriobe treatment vs. brust 
+```{r}
+dose_dependence%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=microbetreatment,
+             y=allburst,
+             fill=microbetreatment))+
+  geom_boxplot()+
+  facet_wrap(~timepoint, nrow=2)+
+  theme_minimal()+
+  labs(title="Concentration of A.pollinisSCC477 and Proportion Burst",
+       x="Microbe Treatment",
+       y="Mean Proportion Germinated")+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
+
+#graph of initial OD vs. germination
+- removed sterile BK because its od is 0
+```{r}
+dose_dependence%>%
+  filter(microbetreatment!="(sterile BK)")%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  pivot_longer(cols=c(allgerm, allburst),
+               names_to="response",
+               values_to="value")%>%
+  ggplot(aes(x=initial_od,
+             y=value,
+             color=microbetreatment))+
+  geom_point(alpha = 0.7, size=2)+
+  geom_smooth(method=lm, se=T)+
+  facet_grid(response~timepoint)+
+  theme_minimal()+
+  labs(title="Relationship between OD and Germination/Bursting",
+       x="Initial OD",
+       y="Proportion",
+       color="Microbe Treatment")+
+  scale_x_log10(breaks=c(0.001, 0.01, 0.1))+
+  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="bottom")
+```
+#relationship between brust and germination
+-not so useful graph--> don't use
+```{r}
+dose_dependence%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=allgerm,
+             y=allburst,
+             color=microbetreatment))+
+  geom_point()+
+  geom_smooth(method=lm, se=T)+
+  facet_wrap(~timepoint, nrow=2)+
+  theme(legend.position="bottom")+
+  labs(
+    title="Relationship between Germination and Bursting",
+    x="Proportion Germinated",
+    y="Proportion Burst",
+    color="Microbe Treatment"
+  )
+```
 
 
