@@ -15,7 +15,7 @@ editor_options:
 knitr::opts_knit$set(root.dir = "/Users/chelsth1/Desktop/BIS15L_W2026_Group1/Data")
 ```
 ```{r}
-getwd()
+setwd("/Users/chelsth1/Desktop/BIS15L_W2026_Group1/Data")
 ```
 
 
