@@ -97,8 +97,7 @@ pollen_microbe %>%
   theme_bw()+
   labs(x = "Microbe Group", y = "# Germinated", fill = "Microbe Group", title="# Germinated Pollen Grains with Different Microbial Groups Over Time")+
   facet_wrap(~timepoint)+
-  theme(axis.text.x = element_text(angle = 45, hjust=1))+
-  scale_fill_manual(values=my_cols)
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
 ```
 
 ```{r}
@@ -372,73 +371,13 @@ Goal: Create a Shiny App that shows the Results of adding Microbial Bacteria (ma
 - The app will show the number of pollen grains that are germinated, bursted before germination, and bursted at the tip for each microbial treatment and time point. This will allow researchers to easily see the effects of the microbial treatments on pollen germination and bursting.
 - The app will also allow users to see the effects of different dilutions of A. pollinis SCC477 on pollen germination over time. This will allow researchers to see if there is a dose-dependent relationship between A. pollinis SCC477 and pollen germination.
 
-
 ```{r}
 library(shiny)
-library(shinythemes)
-
-pollen_microbe <- read_csv("pollen_microbe_data.csv") %>%
-  clean_names() %>%
-  rename(microbe_treatment = microbetreatment) %>% 
-  mutate(across(where(is.numeric), ~replace_na(., 0)))
-
-ui <- fluidPage(
-  titlePanel("Effects of Microbial Treatments on Pollen Germination and Bursting"),
-
-  sidebarLayout(
-    sidebarPanel(
-      selectInput("microbe_group", "Select Microbe Group:",
-                  choices = unique(pollen_microbe$microbe_group))
-    ),
-
-    mainPanel(
-      plotOutput("germination_plot"),
-      plotOutput("burst_plot"),
-      plotOutput("tip_burst_plot")
-    )
-  )
-)
-
-server <- function(input, output, session) {
-  output$germination_plot <- renderPlot({
-    pollen_microbe %>%
-      filter(microbe_group == input$microbe_group) %>%
-      ggplot(aes(x = microbe_group, y = number_germ, fill = microbe_group)) +
-      geom_col(position = "dodge") +
-      theme_bw() +
-      labs(x = "Microbe Group", y = "# Germinated", fill = "Microbe Group", title="# Germinated Pollen Grains with Different Microbial Groups") +
-      theme(axis.text.x = element_text(angle = 90))
-  })
-
-  output$burst_plot <- renderPlot({
-    pollen_microbe %>%
-      filter(microbe_group == input$microbe_group) %>%
-      ggplot(aes(x = microbe_group, y = number_burst, fill = microbe_group)) +
-      geom_col(position = "dodge") +
-      theme_bw() +
-      labs(x = "Microbe Group", y = "# Burst", fill = "Microbe Group", title="# Burst Pollen Grains with Different Microbial Groups") +
-      theme(axis.text.x = element_text(angle = 90))
-  })
-
-  output$tip_burst_plot <- renderPlot({
-    pollen_microbe %>%
-      filter(microbe_group == input$microbe_group) %>%
-      ggplot(aes(x = microbe_group, y = number_tip_burst, fill = microbe_group)) +
-      geom_col(position = "dodge") +
-      theme_bw() +
-      labs(x = "Microbe Group", y = "# Tip Burst", fill = "Microbe Group", title="# Tip Burst Pollen Grains with Different Microbial Groups") +
-      theme(axis.text.x = element_text(angle = 90))
-  })
-}
-
-shinyApp(ui, server)
-```
-
-```{r}
-  library(shiny)
 library(tidyverse)
 library(janitor)
+library(shinythemes)
 
+# --- Data Preparation ---
 pollen_microbe <- read_csv("pollen_microbe_data.csv") %>%
   clean_names() %>%
   rename(microbe_treatment = microbetreatment) %>%
@@ -448,118 +387,122 @@ dose_dependence <- read_csv("dose_dependence_data.csv") %>%
   clean_names() %>%
   rename(microbe_treatment = microbetreatment)
 
+protein_density <- read_csv("Lowry_data1.csv") %>%
+  clean_names() %>%
+  rename(pollen_treatment = pollentreatment, microbe_treatment = microbetreatment)
+
+# --- Theme/Colors ---
+orange_pal <- c("#f8e308", "#f9b80a", "#fc750d", "#ff2f11", "#b30c0c")
+
+# --- UI ---
 ui <- fluidPage(
+  theme = shinytheme("spacelab"),
+  tags$head(tags$style(HTML("
+    body { background-color: #FFFFE0; color: black; }
+    .well { background-color: #FFFACD; border-color: #F0E68C; }
+  "))),
   
-  tags$head(
-    tags$style(HTML("
-      body {
-        background-color: #FFFFE0; /* LightYellow */
-        color: black;              /* Font color */
-      }
-      .well {
-        background-color: #FFFACD; /* LemonChiffon for the sidebar panel */
-        border-color: #F0E68C;     /* Khaki border */
-      }
-    "))
-  ),
-  
-  
-  theme = shinythemes::shinytheme("spacelab"),
-  titlePanel("Pollen Germination Explorer"),
+  titlePanel("Pollen-Microbe Interaction Dashboard"),
   
   sidebarLayout(
     sidebarPanel(
-      # Dropdown for Microbe Group
-      selectInput("group_select", 
-                  "1. Choose Microbe Group:", 
-                  choices = unique(pollen_microbe$microbe_group),
-                  selected = "Acinetobacter"),
-      
-     
+      h4("Global Filters"),
+      selectInput("group_select", "1. Choose Microbe Group:", 
+                  choices = unique(pollen_microbe$microbe_group), selected = "Acinetobacter"),
       uiOutput("treatment_selector"),
-      
       hr(),
-      h4("Filter Dose Data"),
+      h4("Dose Analysis"),
       checkboxGroupInput("dose_select", "2. Select SCC477 Dilutions:",
                          choices = unique(dose_dependence$microbe_treatment),
-                         selected = unique(dose_dependence$microbe_treatment))
+                         selected = unique(dose_dependence$microbe_treatment)),
+      hr(),
+      h4("Recommendation:"),
+      uiOutput("recommendation")
     ),
     
-   mainPanel(
-      h3("Microbe Group Results"),
-      plotOutput("germ_plot"),
-      
-      hr(),
-      h3("Dose Dependence (SCC477) Results"),
-      plotOutput("dose_plot")
+    mainPanel(
+      tabsetPanel(
+        tabPanel("Germination Explorer", 
+                 plotOutput("germ_plot"),
+                 hr(),
+                 plotOutput("dose_plot")),
+        
+        tabPanel("Protein vs Germination", 
+                 h3("The 'Full Circle' Discovery"),
+                 plotOutput("protein_scatter_plot")),
+        
+        tabPanel("Quick Summary", 
+                 tableOutput("summary_table"))
+      )
     )
   )
 )
 
-# --- Server Section ---
+# --- Server ---
 server <- function(input, output, session) {
   
-
+  # Dynamic UI
   output$treatment_selector <- renderUI({
-    available_treatments <- pollen_microbe %>%
-      filter(microbe_group == input$group_select) %>%
-      pull(microbe_treatment) %>%
-      unique()
-    
-    checkboxGroupInput("treat_select", 
-                       "2. Select Microbe Treatments:", 
-                       choices = available_treatments,
-                       selected = available_treatments[1])
+    available <- pollen_microbe %>% filter(microbe_group == input$group_select) %>% pull(microbe_treatment) %>% unique()
+    checkboxGroupInput("treat_select", "Select Treatments:", choices = available, selected = available[1])
   })
   
- 
-output$treatment_selector <- renderUI({
-    available_treatments <- pollen_microbe %>%
-      filter(microbe_group == input$group_select) %>%
-      pull(microbe_treatment) %>%
-      unique()
+  # Logic: Best Performer
+  output$recommendation <- renderUI({
+    best <- pollen_microbe %>%
+      group_by(microbe_treatment) %>%
+      summarise(avg = mean(allgerm, na.rm = TRUE)) %>%
+      filter(avg == max(avg))
     
-    checkboxGroupInput("treat_select", "Select Microbe Treatments:", 
-                       choices = available_treatments,
-                       selected = available_treatments[1])
+    div(style = "background-color: #ffcc00; padding: 10px; border-radius: 5px; color: black;",
+        strong("Top Performer:"), 
+        paste(best$microbe_treatment, "(Avg:", round(best$avg, 2), ")")
+    )
   })
   
-  # Plot 1: Pollen Microbe Bar Plot
+  # Plot 1: Germination
   output$germ_plot <- renderPlot({
     req(input$treat_select)
-    pollen_microbe %>%
-      filter(microbe_group == input$group_select,
-             microbe_treatment %in% input$treat_select) %>%
+    pollen_microbe %>% filter(microbe_group == input$group_select, microbe_treatment %in% input$treat_select) %>%
       ggplot(aes(x = microbe_treatment, y = allgerm, fill = microbe_treatment)) +
-      geom_col(position = "dodge", color = "black") +
-      facet_wrap(~timepoint) +
-      theme_minimal() +
-      labs(title = paste("Germination by Group:", input$group_select),
-           x = "Treatment", y = "Total Germination") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      geom_col(position = "dodge", color = "black") + facet_wrap(~timepoint) +
+      scale_fill_manual(values = rep(orange_pal, length.out = 20)) +
+      theme_minimal() + labs(title = "Total Germination", y = "Count")
   })
   
-  # Plot 2: Dose Dependence Box Plot
+  # Plot 2: Dose Dependence
   output$dose_plot <- renderPlot({
     req(input$dose_select)
-    dose_dependence %>%
-      filter(microbe_treatment %in% input$dose_select) %>%
-      # Ensure timepoints are ordered correctly
-      mutate(timepoint = factor(timepoint, levels = c("15m","45m","90m","3h","4h","6h","12h","24h"))) %>%
+    dose_dependence %>% filter(microbe_treatment %in% input$dose_select) %>%
       ggplot(aes(x = microbe_treatment, y = proportion_germinated, fill = microbe_treatment)) +
-      geom_boxplot(color = "black") +
-      facet_wrap(~timepoint, nrow = 2) +
-      theme_minimal() +
-      labs(title = "Concentration of A. pollinis SCC477 vs. Proportion Germinated",
-           x = "Dilution Treatment", y = "Proportion Germinated") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      geom_boxplot(color = "black") + facet_wrap(~timepoint) +
+      scale_fill_manual(values = rep(orange_pal, length.out = 20)) +
+      theme_minimal() + labs(title = "Dose Dependence (SCC477)")
+  })
+  
+  # Plot 3: Protein Scatter
+  output$protein_scatter_plot <- renderPlot({
+    plot_data <- protein_density %>%
+      group_by(microbe_treatment) %>%
+      summarise(mean_protein = mean(protein, na.rm = TRUE)) %>%
+      inner_join(pollen_microbe %>% group_by(microbe_treatment) %>% summarise(mean_germ = mean(allgerm, na.rm = TRUE)),
+                 by = "microbe_treatment")
+    
+    ggplot(plot_data, aes(x = mean_protein, y = mean_germ, color = microbe_treatment)) +
+      geom_point(size = 5) + geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+      theme_minimal() + labs(title = "Protein Release vs. Germination Rate", x = "Mean Protein", y = "Mean Germination") +
+      scale_color_manual(values = rep(orange_pal, length.out = 20))
+  })
+  
+  # Table: Summary
+  output$summary_table <- renderTable({
+    pollen_microbe %>% group_by(microbe_group) %>% 
+      summarise(Avg_Germination = mean(allgerm)) %>% arrange(desc(Avg_Germination))
   })
 }
 
 shinyApp(ui, server)
-
 ```
-
 
 
 
