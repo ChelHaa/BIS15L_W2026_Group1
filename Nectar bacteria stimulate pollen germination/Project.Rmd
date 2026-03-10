@@ -438,10 +438,10 @@ ui <- fluidPage(
                  plotOutput("germ_plot"),
                  hr(),
                  plotOutput("dose_plot")),
-        
-        tabPanel("Protein vs Germination", 
-                 h3("The 'Full Circle' Discovery"),
-                 plotOutput("protein_scatter_plot")),
+        # 
+        # tabPanel("Protein vs Germination", 
+        #          h3("The 'Full Circle' Discovery"),
+        #          plotOutput("protein_scatter_plot")),
         
         tabPanel("Quick Summary", 
                  tableOutput("summary_table"))
@@ -492,20 +492,22 @@ server <- function(input, output, session) {
       theme_minimal() + labs(title = "Dose Dependence (SCC477)")
   })
   
-  # Plot 3: Protein Scatter
-  output$protein_scatter_plot <- renderPlot({
-    plot_data <- protein_density %>%
-      group_by(microbe_treatment) %>%
-      summarise(mean_protein = mean(protein, na.rm = TRUE)) %>%
-      inner_join(pollen_microbe %>% group_by(microbe_treatment) %>% summarise(mean_germ = mean(allgerm, na.rm = TRUE)),
-                 by = "microbe_treatment")
-    
-    ggplot(plot_data, aes(x = mean_protein, y = mean_germ, color = microbe_treatment)) +
-      geom_point(size = 5) + geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
-      theme_minimal() + labs(title = "Protein Release vs. Germination Rate", x = "Mean Protein", y = "Mean Germination") +
-      scale_color_manual(values = rep(orange_pal, length.out = 20))
-  })
-  
+  # # Plot 3: Protein Scatter
+  # output$protein_scatter_plot <- renderPlot({
+  #   plot_data <- protein_density %>%
+  #     group_by(microbe_treatment) %>%
+  #     summarise(mean_protein = mean(protein, na.rm = TRUE)) %>% 
+  #     inner_join(pollen_microbe %>% 
+  #                  group_by(microbe_treatment) %>% 
+  #                  summarise(mean_germ = mean(allgerm, na.rm = TRUE)),
+  #                by = "microbe_treatment") %>% 
+  # 
+  #   ggplot(plot_data, aes(x = mean_protein, y = mean_germ, color = microbe_treatment)) +
+  #     geom_point(size = 5) + geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+  #     theme_minimal() + labs(title = "Protein Release vs. Germination Rate", x = "Mean Protein", y = "Mean Germination") +
+  #     scale_color_manual(values = rep(orange_pal, length.out = 20))
+  # })
+  # 
   # Table: Summary
   output$summary_table <- renderTable({
     pollen_microbe %>% group_by(microbe_group) %>% 
