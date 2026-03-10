@@ -12,8 +12,9 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_knit$set(root.dir = "C:/users/hache/OneDrive/Documents/Desktop/BIS15L_W2026_Group1/Data")
+knitr::opts_knit$set(root.dir = "C:/Users/hache/OneDrive/Documents/Desktop/BIS15L_W2026_Group1/Data")
 ```
+
 
 ## Load the libraries
 
@@ -25,6 +26,8 @@ library("ggthemes")
 library("RColorBrewer")
 library("paletteer")
 library(ggplot2)
+library(shinythemes)
+library(shinydashboard)
 ```
 
 ##Contents of the Project:
@@ -51,43 +54,30 @@ library(ggplot2)
     -   graphs
 
 
-##Data Exploration for each dataset:
-
+##Data Exploration for each dataset
 ##Data on pollen germination and bursting with different microbial treatments
-
 ```{r echo=TRUE}
 pollen_microbe<-read_csv("pollen_microbe_data.csv")%>%
-  clean_names()
-```
-
-Change the names of microbetreatment to microbe_treatment
-
-```{r}
-pollen_microbe_new <- pollen_microbe %>%
-   rename(microbe_treatment = microbetreatment)
-```
-
-Change NA values to 0 in columns with NA
-```{r}
-pollen_microbe_new <- pollen_microbe_new %>%
+  clean_names()%>%
+  rename(microbe_treatment = microbetreatment) %>% 
   mutate(across(where(is.numeric), ~replace_na(., 0)))
 ```
 
+
 ```{r}
-pollen_microbe_new %>% 
+pollen_microbe%>% 
   distinct(microbe_group, microbe_treatment)
 ```
 
 Arrange the data from the most germinated to the least germinated for each time point and microbe treatment
-
 ```{r}
-pollen_microbe_new %>%
+pollen_microbe %>%
   select(timepoint, microbe_group, microbe_treatment, allgerm) %>%
   arrange(desc(allgerm))
 ```
 
 ```{r echo=FALSE}
-pollen_microbe_new %>% 
+pollen_microbe %>% 
   group_by(timepoint, microbe_group) %>%
   ggplot(aes(x = timepoint, y = allgerm, fill = microbe_group))+
   geom_col(position = "dodge")+
@@ -100,43 +90,45 @@ The acinetobacter has the largest amount of germination at each timepoint, follo
 
 We can see if the type of microbial group has any correlation with the number of germinated pollen (pollen tubes are fully grown), the number of grains that burst (pollen tubes are not fully grown and the pollen grain is broken), and the number of grains that burst at the tip.
 ```{r echo=TRUE}
-pollen_microbe_new %>%
+pollen_microbe %>%
   group_by(microbe_group, timepoint) %>%
   ggplot(aes(x = microbe_group, y = number_germ, fill = microbe_group))+
   geom_col(position = "dodge")+
   theme_bw()+
   labs(x = "Microbe Group", y = "# Germinated", fill = "Microbe Group", title="# Germinated Pollen Grains with Different Microbial Groups Over Time")+
   facet_wrap(~timepoint)+
-  theme(axis.text.x = element_text(angle = 90))
+  theme(axis.text.x = element_text(angle = 45, hjust=1))+
+  scale_fill_manual(values=my_cols)
 ```
 
 ```{r}
-pollen_microbe_new %>%
+pollen_microbe %>%
   group_by(microbe_group, timepoint) %>%
   ggplot(aes(x = microbe_group, y = number_burst, fill = microbe_group))+
   geom_col(position = "dodge")+
   theme_bw()+
   labs(x = "Microbe Group", y = "# Burst", fill = "Microbe Group", title="# Burst Pollen Grains with Different Microbial Groups Over Time")+
   facet_wrap(~timepoint)+
-  theme(axis.text.x = element_text(angle = 90))
+  theme(axis.text.x = element_text(angle =  45, hjust=1))+
+  scale_fill_manual(values=my_cols)
 ```
 
 ```{r}
-pollen_microbe_new %>%
+pollen_microbe %>%
   group_by(microbe_group, timepoint) %>%
   ggplot(aes(x = microbe_group, y = number_tip_burst, fill = microbe_group))+
   geom_col(position = "dodge")+
   theme_bw()+
   labs(x = "Microbe Group", y = "# Tip Burst", fill = "Microbe Group", title="# Tip Burst Pollen Grains with Different Microbial Groups Over Time")+
   facet_wrap(~timepoint)+
-  theme(axis.text.x = element_text(angle = 90))
+  theme(axis.text.x = element_text(angle = 45, hjust=1))+
+  scale_fill_manual(values=my_cols)
 ```
 From the three graphs, the acinetobacter increases total pollen bursting and tip bursting over time as well as in the burst before germination (no visible pollen tube). Using the number_burst variable, meaning this is before the pollen tube is fully grown, we can see that the acinetobacter has the highest number of burst pollen grains at each time point. This may mean that acinetobacter will induce burst-before-germination events, resulting in nutrients being released from the pollen grain before the pollen tube is fully grown.
 
 
 
 ##Data on proportion of grains germinated with different dilutions of A. pollinisSCC477 over time.
-
 ```{r}
 dose_dependence <-read_csv("dose_dependence_data.csv")%>%
   clean_names() %>% 
@@ -144,47 +136,116 @@ dose_dependence <-read_csv("dose_dependence_data.csv")%>%
 ```
 
 ```{r}
+dose_dependence <- dose_dependence %>%
+  mutate(time_minutes=case_when(
+    timepoint=="15m" ~ 15,
+           timepoint=="45m" ~ 45,
+           timepoint=="90m" ~ 90,
+           timepoint=="3h"  ~ 180,
+           timepoint=="4h"  ~ 240,
+           timepoint=="6h"  ~ 360,
+           timepoint=="12h" ~ 720,
+           timepoint=="24h" ~ 1440))
+```
+
+```{r}
 glimpse(dose_dependence)
 ```
 
-
+graph of microbe treatment(dilution) vs. proportion germinated 
 ```{r}
-dose_dependence %>%
-  group_by(microbe_treatment) %>% 
-  arrange(desc(allgerm))
+dose_dependence%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=microbe_treatment,
+             y=proportion_germinated,
+             fill=microbe_treatment))+
+  geom_boxplot()+
+  facet_wrap(~timepoint, nrow=2)+
+  theme_minimal()+
+  labs(title="Concentration of A.pollinis SCC477 and Proportion Germinated",
+       x="Microbe Treatment",
+       y="Proportion Germinated")+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
-
-
 ```{r}
 dose_dependence %>%
-  filter(microbe_treatment == "(1:20)") %>%
-  ggplot(aes(x = minutes/60, y = allgerm))+
-  geom_col(position = "dodge")+
-  theme_bw()+
-  labs(x = "Hours", y = "# Germinated", title="# Germinated Pollen Grains with 1:20 Dilution of A. pollinis SCC477 Over Time")
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=microbe_treatment,
+             y=allgerm,
+             fill=microbe_treatment))+
+  geom_boxplot()+
+  facet_wrap(~timepoint, nrow=2)+
+  labs(title="Concentration of A.pollinisSCC477 and All Germinated",
+       x="Microbe Treatment",
+       y="# Germinated")+
+  theme_minimal()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
 
 
 ##Data on microbial hemocytometer counts of A. pollinis, when provided different pollen treatments.
-
 ```{r}
 a_pollinis <- read_csv("Apollinis_benefit_data.csv") %>%
   clean_names()
 ```
+```{r}
+glimpse(a_pollinis)
+```
 
-##Data on microbial hemocytometer counts of M. reukaufii, when       provided different pollen treatments.
+```{r}
+a_pollinis %>%
+  select(date, tube, treatment_l, final_count_24h, initial_count) %>%
+  group_by(date, tube, treatment_l) %>%
+  summarise(mean_delta=mean(final_count_24h - initial_count, na.rm = TRUE)) %>% 
+  arrange(desc(mean_delta)) 
+```
+FP (fresh pollen) + A.pollinis had the greatest change in microbial density. This suggests that the presence of pollen may increase microbial growth, and that the type of pollen may also have an effect on microbial growth. The FP pollen treatment may provide more nutrients for microbial growth compared to the FP alone (pollen by itself) UP (ungerminable pollen) treatments without the A.pollinis bacteria, which could explain the greater increase in microbial density observed in the FP treatment.
 
+
+
+
+
+##Data on microbial hemocytometer counts of M. reukaufii, when provided different pollen treatments.
 ```{r}
 yeast_benefit <- read_csv("yeast_benefit_data.csv") %>%
   clean_names()
 ```
 
+```{r}
+yeast_benefit %>%
+  select(date, treatment_l, final_count_24h, initial_count) %>%
+  group_by(date, treatment_l) %>%
+  summarise(mean_delta=mean(final_count_24h - initial_count, na.rm = TRUE)) %>% 
+  arrange(desc(mean_delta))
+```
+This table shows that the FP (fresh pollen) + yeast treatment had the greatest change in microbial density followed by the yeast with ungerminable or fresh pollen. We can infer that with pollen, the yeast will have more nutrients to grow, and that the type of pollen may also have an effect on microbial growth. The FP pollen treatment may provide more nutrients for microbial growth 
+
+
+```{r}
+yeast_benefit %>% 
+  ggplot(aes(x = treatment_l, y = final_count_24h - initial_count, fill = treatment_l)) +
+  geom_boxplot()+
+  labs(x = "Treatment", y = "Yeast Density", fill = "Treatment", title="Change in Yeast Density with Different Pollen Treatments")
+```
+
+
 ##Data on germination and bursting after pollen (germinable or ungerminable) exposure to SCC477 (or no inoculation).
 
 ```{r}
 germination_burst <- read_csv("germ_AN.csv") %>%
-  clean_names()
+  clean_names() %>% 
+  rename(pollen_treatment = pollentreatment)
 ```
+Out of all the germinable pollen treatments, which had the most germination and bursting?
+```{r}
+germination_burst %>% 
+  filter(pollen_treatment=="GP" & timepoint== "24h") %>%
+  arrange(desc(germ)) 
+```
+We can see that the germinable pollen with SCC477 had the most germination and bursting, which suggests that the presence of SCC477 may induce germination and bursting in pollen. The control treatments without SCC477 had very low germination and bursting, which suggests that the presence of SCC477 may be necessary for inducing germination and bursting in pollen.
+
 
 ##Data on protein in solution after pollen (germinable or ungerminable or no pollen) exposure to SCC477 (or no inoculation).
 
@@ -195,40 +256,70 @@ protein_density <- read_csv("Lowry_data1.csv") %>%
          microbe_treatment = microbetreatment)
 ```
 
-
-
-
-
-
-        
-
-##Questions: 
-
-## 1) What is the average number of Pollen germinated with microbial species compared to other microbial groups? (make sure to label the 15 mintues, 45 minutes, and 90 minutes on the x-axis)
+```{r}
+protein_density %>% 
+  filter(pollen_treatment=="Fresh" & date=="3.29.21") %>% 
+  group_by(microbe_treatment) %>%
+  arrange(desc(protein))
+```
 
 ```{r}
-pollen_microbe_new %>%
+protein_density %>% 
+  filter(pollen_treatment=="Ungerm" & date== "4.12.21") %>% 
+  group_by(microbe_treatment) %>%
+  arrange(desc(protein))
+```
+This table shows protein concentrations from ungerminated pollen samples with different microbial treatments. The data suggest that microbial presence, particularly A. pollinis, may increase the amount of protein released from pollen over time.
+
+
+##Questions + Graphs for Presentation:
+```{r}
+ls("package:ggthemes")[grepl("theme_", ls("package:ggthemes"))]
+```
+```{r}
+?RColorBrewer
+```
+
+```{r}
+#theme and colors
+colors <- paletteer::palettes_d_names
+my_palette <- paletteer_d("LaCroixColoR::Tangerine")
+my_cols <- c("#f8e308",
+             "#f9b80a",
+             "#fc750d",
+             "#ff2f11",
+             "#b30c0c")
+```
+
+## 1) What is the average number of Pollen germinated with microbial species compared to other microbial groups? (make sure to label the 15 mintues, 45 minutes, and 90 minutes on the x-axis)
+```{r}
+pollen_microbe %>%
   group_by(microbe_group, timepoint) %>%
   summarise(mean_germinated = mean(allgerm)) %>% 
   ggplot(aes(x = timepoint/15, y = mean_germinated, fill = microbe_group))+
   geom_col(position = "dodge")+
   coord_flip()+
-  labs(x = "Time Point", y = "Mean # Germinated", fill = "Microbe Group", title="Mean # Germinated Pollen Grains with Different Microbial Groups Over Time")
+  labs(x = "Time Point",
+       y = "Mean # Germinated", fill = "Microbe Group",
+       title="Mean # Germinated Pollen Grains with Different Microbial Groups Over Time")+
+theme_tufte()+
+  theme_linedraw()+
+  scale_fill_manual(values=my_cols)
 ```
 
-## 2) How does the percentage of pollen germinated change over time with different microbial species? (Relationship between pollen germination and time)
+## 2) How does the microbial density change with different pollen conditions? (Relationship between bacterial density and pollen germination)
 ```{r}
-
+a_pollinis %>%
+  group_by(date, treatment_l) %>%
+  summarise(mean_delta = mean(final_count_24h - initial_count, na.rm = TRUE)) %>% 
+  ggplot(aes(x = date, y = mean_delta, fill = treatment_l)) +
+  geom_col(position = "dodge") +
+  labs(x = "Date", y = "Change in Microbial Density", fill = "Treatment", title="Change in Microbial Density with Different Pollen Treatments")+
+  theme_bw()+
+  scale_fill_manual(values=my_cols)
 ```
 
-## 3) How does the microbial density change over time with different pollen conditions? (Relationship between bacterial density and pollen germination)
-
-```{r}
-
-```
-
-
-## 4) Microbial growth with different pollen conditions (A.pollinis vs. Yeast (known not to induce germination process))
+## 3) Microbial growth with different pollen conditions
 ```{r}
 a_pollinis_wide <- a_pollinis %>%
   group_by(date) %>% 
@@ -240,26 +331,25 @@ a_pollinis_wide
 ```
 
 ```{r}
-a_pollinis_new <- a_pollinis %>%
+a_pollinis <- a_pollinis %>%
   mutate(delta = final_count_24h - initial_count) %>% 
   arrange(desc(delta))
+a_pollinis
 ```
 
 ```{r}
-a_pollinis_new %>%
-  group_by(date, tube) %>%
-  summarise(mean_delta = mean(delta, na.rm = TRUE)) %>%
-  ggplot(aes(x = tube, y = mean_delta, fill = tube)) +
-  geom_col() +   # geom_col is just geom_bar(stat = "identity")
-  theme_bw()
-
+names(a_pollinis)
 ```
 
+```{r}
+a_pollinis %>%
+  group_by(treatment_l) %>%
+  summarise(mean_delta = mean(delta, na.rm = TRUE)) %>%
+  ggplot(aes(x = treatment_l, y = mean_delta)) +
+  geom_col(fill = "steelblue")
+```
 
-
-
-
-## 5) Does pollen germination increase microbial growth?
+## 4) Does pollen germination increase microbial growth?
 ```{r}
 protein_density%>%
   group_by(pollen_treatment, microbe_treatment) %>%
@@ -267,21 +357,85 @@ protein_density%>%
   ggplot(aes(x = pollen_treatment, y = mean_protein, fill = microbe_treatment))+
   geom_col(position = "dodge")+
   theme_bw()+
-  labs(x = "Pollen Treatment", y = "Mean Protein Concentration", fill = "Microbe Treatment", title="Mean Protein Concentration with Different Pollen and Microbe Treatments")
+  labs(x = "Pollen Treatment", y = "Mean Protein Concentration", fill = "Microbe Treatment", title="Mean Protein Concentration with Different Pollen and Microbe Treatments")+
+  theme_bw()+
+  scale_fill_manual(values=my_palette)
 ```
-
-
-
-
-
-
 
 
 
 ##Shiny App
-```{r}
 
+Goal: Create a Shiny App that shows the Results of adding Microbial Bacteria (mainly the Acinetobacter) to pollen and how it affects pollen germination and bursting over time. The app will also show the effects of different dilutions of A. pollinis SCC477 on pollen germination over time as well as the protein densities overtime after treatment. 
+
+- Build a shiny app that lets researchers see the effects of the microbial treatments on the stages of pollen (premature pollen, bursted pollen before germination, and germinated pollen that has bursted at the tip). Users can also choose whether the pollen is germinable or ungerminable. 
+- The app will show the number of pollen grains that are germinated, bursted before germination, and bursted at the tip for each microbial treatment and time point. This will allow researchers to easily see the effects of the microbial treatments on pollen germination and bursting.
+- The app will also allow users to see the effects of different dilutions of A. pollinis SCC477 on pollen germination over time. This will allow researchers to see if there is a dose-dependent relationship between A. pollinis SCC477 and pollen germination.
+
+
+```{r}
+library(shiny)
+library(shinythemes)
+
+pollen_microbe <- read_csv("pollen_microbe_data.csv") %>%
+  clean_names() %>%
+  rename(microbe_treatment = microbetreatment) %>% 
+  mutate(across(where(is.numeric), ~replace_na(., 0)))
+
+ui <- fluidPage(
+  titlePanel("Effects of Microbial Treatments on Pollen Germination and Bursting"),
+
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("microbe_group", "Select Microbe Group:",
+                  choices = unique(pollen_microbe$microbe_group))
+    ),
+
+    mainPanel(
+      plotOutput("germination_plot"),
+      plotOutput("burst_plot"),
+      plotOutput("tip_burst_plot")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  output$germination_plot <- renderPlot({
+    pollen_microbe %>%
+      filter(microbe_group == input$microbe_group) %>%
+      ggplot(aes(x = microbe_group, y = number_germ, fill = microbe_group)) +
+      geom_col(position = "dodge") +
+      theme_bw() +
+      labs(x = "Microbe Group", y = "# Germinated", fill = "Microbe Group", title="# Germinated Pollen Grains with Different Microbial Groups") +
+      theme(axis.text.x = element_text(angle = 90))
+  })
+
+  output$burst_plot <- renderPlot({
+    pollen_microbe %>%
+      filter(microbe_group == input$microbe_group) %>%
+      ggplot(aes(x = microbe_group, y = number_burst, fill = microbe_group)) +
+      geom_col(position = "dodge") +
+      theme_bw() +
+      labs(x = "Microbe Group", y = "# Burst", fill = "Microbe Group", title="# Burst Pollen Grains with Different Microbial Groups") +
+      theme(axis.text.x = element_text(angle = 90))
+  })
+
+  output$tip_burst_plot <- renderPlot({
+    pollen_microbe %>%
+      filter(microbe_group == input$microbe_group) %>%
+      ggplot(aes(x = microbe_group, y = number_tip_burst, fill = microbe_group)) +
+      geom_col(position = "dodge") +
+      theme_bw() +
+      labs(x = "Microbe Group", y = "# Tip Burst", fill = "Microbe Group", title="# Tip Burst Pollen Grains with Different Microbial Groups") +
+      theme(axis.text.x = element_text(angle = 90))
+  })
+}
+
+shinyApp(ui, server)
 ```
+
+
+
 
 
 ##Exploration of Pollen Microbe Data (Jenny)
@@ -293,7 +447,7 @@ glimpse(pollen_microbe)
 summary(pollen_microbe)
 ```
 
-#distribution of microbe group
+distribution of microbe group (shows the number of samples for each microbe group, which is important to know for our analysis)
 ```{r}
 pollen_microbe %>%
   ggplot(aes(x=microbe_group, fill=microbe_group))+
@@ -305,68 +459,24 @@ pollen_microbe %>%
     y="Count")+
   theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
-
-#microbe group and all germination
+microbe group and all germination
 ```{r}
 pollen_microbe%>%
   ggplot(aes(x=microbe_group, y=allgerm, fill=microbe_group))+
   geom_boxplot()+
   facet_wrap(~timepoint)+
-  theme_minimal()+
+  theme_linedraw()+
   labs(
     title="All Germination of Different Microbe Group by Timepoints",
     x="Microbe Group",
     y="All Germination")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_fill_manual(values=my_cols)
 ```
 
-#microbe group and all germination(distribution)
-```{r}
-pollen_microbe%>%
-  ggplot(aes(x = prop_germ))+
-  geom_histogram(
-    binwidth = 0.05,
-    fill = "lightblue",
-    color = "black")+
-  theme_minimal()+
-  facet_wrap(~microbe_group)+
-  labs(
-    title="Distribution of Proportion Germinated",
-    x="Proportion Germinated",
-    y="Count")
-```
 
-#microbe group and all  burst
-```{r}
-pollen_microbe%>%
-  ggplot(aes(x=microbe_group, y=allburst, fill=microbe_group))+
-  geom_boxplot()+
-  facet_wrap(~timepoint)+
-  theme_minimal()+
-  labs(
-    title="All Burst of Different Microbe Group by Timepoints",
-    x="Microbe Group",
-    y="All Burst")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
 
-#microbe group and all germination(distribution)
-```{r}
-pollen_microbe%>%
-  ggplot(aes(x=prop_burst))+
-  geom_histogram(
-    binwidth = 0.05,
-    fill = "lightblue",
-    color = "black")+
-  theme_minimal()+
-  facet_wrap(~microbe_group)+
-  labs(
-    title="Distribution of Proportion Burst",
-    x="Proportion Burst",
-    y="Count")
-```
-
-#germination and time
+germination and time
 ```{r}
 pollen_microbe%>%
   group_by(microbe_group, timepoint)%>%
@@ -381,21 +491,13 @@ pollen_microbe%>%
     title="Mean Germination Over Time for Each Microbe Group",
     x="Timepoint",
     y="Mean Proportion Germinated",
-    color="Microbe Group")
+    color="Microbe Group")+
+  scale_fill_manual(values=my_cols)
 ```
 
-#standard OD & all germination
-```{r}
-pollen_microbe %>%
-  ggplot(aes(x=factor(standardized_od_plate), y=allgerm, fill=microbe_group)) +
-  geom_boxplot()+
-  theme_minimal()+
-  facet_wrap(~timepoint)+
-  labs(
-    title="Effect of OD on Germination",
-    x="Initial OD",
-    y="All Germination")
-```
+
+
+
 
 
 
@@ -403,35 +505,18 @@ pollen_microbe %>%
 ```{r}
 glimpse(dose_dependence)
 ```
+
 ```{r}
 summary(dose_dependence)
-```
-
-- actually microbe treatment and initial OD is the same but only the initial OD make the treatment into a number
-#graph of mircriobe treatment vs. germinated 
-```{r}
-dose_dependence%>%
-  mutate(timepoint=factor(timepoint,
-         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
-  ggplot(aes(x=microbetreatment,
-             y=proportion_germinated,
-             fill=microbetreatment))+
-  geom_boxplot()+
-  facet_wrap(~timepoint, nrow=2)+
-  theme_minimal()+
-  labs(title="Concentration of A.pollinisSCC477 and Proportion Germinated",
-       x="Microbe Treatment",
-       y="Mean Proportion Germinated")+
-  theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
 
 ```{r}
 dose_dependence %>%
   mutate(timepoint=factor(timepoint,
          levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
-  ggplot(aes(x=microbetreatment,
-             y=allgerm,
-             fill=microbetreatment))+
+  ggplot(aes(x=microbe_treatment,
+             y=proportion_germinated,
+             fill=microbe_treatment))+
   geom_boxplot()+
   facet_wrap(~timepoint, nrow=2)+
   labs(title="Concentration of A.pollinisSCC477 and All Germinated",
@@ -441,7 +526,7 @@ dose_dependence %>%
   theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
 
-#whether treatment accelerates germination
+whether treatment accelerates germination
 ```{r}
 dose_dependence <- dose_dependence %>%
   mutate(time_minutes=case_when(
@@ -457,11 +542,11 @@ dose_dependence <- dose_dependence %>%
 
 ```{r}
 dose_dependence%>%
-  group_by(microbetreatment, time_minutes)%>%
+  group_by(microbe_treatment, time_minutes)%>%
   summarize(mean_germ=mean(allgerm, na.rm=TRUE)) %>%
   ggplot(aes(time_minutes, mean_germ,
-             color=microbetreatment,
-             group=microbetreatment))+
+             color=microbe_treatment,
+             group=microbe_treatment))+
   geom_point()+
   geom_line()+
   labs(
@@ -471,66 +556,19 @@ dose_dependence%>%
   theme_minimal()
 ```
 
-#graph of mircriobe treatment vs. brust 
+graph of microbe treatment vs. burst 
 ```{r}
 dose_dependence%>%
   mutate(timepoint=factor(timepoint,
          levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
-  ggplot(aes(x=microbetreatment,
+  ggplot(aes(x=microbe_treatment,
              y=allburst,
-             fill=microbetreatment))+
+             fill=microbe_treatment))+
   geom_boxplot()+
   facet_wrap(~timepoint, nrow=2)+
   theme_minimal()+
-  labs(title="Concentration of A.pollinisSCC477 and Proportion Burst",
+  labs(title="Concentration of A.pollinisSCC477 and All Burst",
        x="Microbe Treatment",
-       y="Mean Proportion Germinated")+
+       y="Proportion Germinated")+
   theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
-
-#graph of initial OD vs. germination
-- removed sterile BK because its od is 0
-```{r}
-dose_dependence%>%
-  filter(microbetreatment!="(sterile BK)")%>%
-  mutate(timepoint=factor(timepoint,
-         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
-  pivot_longer(cols=c(allgerm, allburst),
-               names_to="response",
-               values_to="value")%>%
-  ggplot(aes(x=initial_od,
-             y=value,
-             color=microbetreatment))+
-  geom_point(alpha = 0.7, size=2)+
-  geom_smooth(method=lm, se=T)+
-  facet_grid(response~timepoint)+
-  theme_minimal()+
-  labs(title="Relationship between OD and Germination/Bursting",
-       x="Initial OD",
-       y="Proportion",
-       color="Microbe Treatment")+
-  scale_x_log10(breaks=c(0.001, 0.01, 0.1))+
-  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="bottom")
-```
-#relationship between brust and germination
--not so useful graph--> don't use
-```{r}
-dose_dependence%>%
-  mutate(timepoint=factor(timepoint,
-         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
-  ggplot(aes(x=allgerm,
-             y=allburst,
-             color=microbetreatment))+
-  geom_point()+
-  geom_smooth(method=lm, se=T)+
-  facet_wrap(~timepoint, nrow=2)+
-  theme(legend.position="bottom")+
-  labs(
-    title="Relationship between Germination and Bursting",
-    x="Proportion Germinated",
-    y="Proportion Burst",
-    color="Microbe Treatment"
-  )
-```
-
-
