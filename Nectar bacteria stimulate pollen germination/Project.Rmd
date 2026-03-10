@@ -12,7 +12,10 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_knit$set(root.dir = "C:/Users/hache/OneDrive/Documents/Desktop/BIS15L_W2026_Group1/Data")
+knitr::opts_knit$set(root.dir = "/Users/chelsth1/Desktop/BIS15L_W2026_Group1/Data")
+```
+```{r}
+getwd()
 ```
 
 
@@ -76,12 +79,25 @@ pollen_microbe %>%
   arrange(desc(allgerm))
 ```
 
+
+```{r}
+#theme and colors
+colors <- paletteer::palettes_d_names
+my_palette <- paletteer_d("LaCroixColoR::Tangerine")
+my_cols <- c("#f8e308",
+             "#f9b80a",
+             "#fc750d",
+             "#ff2f11",
+             "#b30c0c")
+```
+
 ```{r echo=FALSE}
 pollen_microbe %>% 
   group_by(timepoint, microbe_group) %>%
   ggplot(aes(x = timepoint, y = allgerm, fill = microbe_group))+
   geom_col(position = "dodge")+
-  theme_bw()
+  theme_bw()+
+  scale_fill_manual(values=my_cols)
 ```
 The acinetobacter has the largest amount of germination at each timepoint, followed by the control, then the yeast. The control pectin degrader was used to rule out the idea that simply breaking open the pollen (by degrading pectin in the inner layer of the pollen grain) would result in germination; we can see that the control pectin degrader has very low germination, so we can rule out that idea. The acinetobacter treatment has the highest germination, which suggests that the acinetobacter is inducing germination.
 
@@ -95,9 +111,15 @@ pollen_microbe %>%
   ggplot(aes(x = microbe_group, y = number_germ, fill = microbe_group))+
   geom_col(position = "dodge")+
   theme_bw()+
-  labs(x = "Microbe Group", y = "# Germinated", fill = "Microbe Group", title="# Germinated Pollen Grains with Different Microbial Groups Over Time")+
+  labs(x = "Microbe Group",
+       y = "# Germinated",
+       title="# Germinated Pollen Grains with Different Microbial Groups Over Time")+
   facet_wrap(~timepoint)+
-  theme(axis.text.x = element_text(angle = 45, hjust=1))
+  theme(axis.text.x = element_blank(),
+        axis.title= element_text(size=24),
+        plot.title= element_text(size=24),
+        legend.text = element_text(size=12))+
+  scale_fill_manual(values=my_cols)
 ```
 
 ```{r}
@@ -120,8 +142,7 @@ pollen_microbe %>%
   theme_bw()+
   labs(x = "Microbe Group", y = "# Tip Burst", fill = "Microbe Group", title="# Tip Burst Pollen Grains with Different Microbial Groups Over Time")+
   facet_wrap(~timepoint)+
-  theme(axis.text.x = element_text(angle = 45, hjust=1))+
-  scale_fill_manual(values=my_cols)
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
 ```
 From the three graphs, the acinetobacter increases total pollen bursting and tip bursting over time as well as in the burst before germination (no visible pollen tube). Using the number_burst variable, meaning this is before the pollen tube is fully grown, we can see that the acinetobacter has the highest number of burst pollen grains at each time point. This may mean that acinetobacter will induce burst-before-germination events, resulting in nutrients being released from the pollen grain before the pollen tube is fully grown.
 
@@ -279,16 +300,7 @@ ls("package:ggthemes")[grepl("theme_", ls("package:ggthemes"))]
 ?RColorBrewer
 ```
 
-```{r}
-#theme and colors
-colors <- paletteer::palettes_d_names
-my_palette <- paletteer_d("LaCroixColoR::Tangerine")
-my_cols <- c("#f8e308",
-             "#f9b80a",
-             "#fc750d",
-             "#ff2f11",
-             "#b30c0c")
-```
+
 
 ## 1) What is the average number of Pollen germinated with microbial species compared to other microbial groups? (make sure to label the 15 mintues, 45 minutes, and 90 minutes on the x-axis)
 ```{r}
