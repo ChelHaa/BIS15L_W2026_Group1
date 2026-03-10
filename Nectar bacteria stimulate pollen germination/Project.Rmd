@@ -14,9 +14,6 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = "/Users/chelsth1/Desktop/BIS15L_W2026_Group1/Data")
 ```
-```{r}
-setwd("/Users/chelsth1/Desktop/BIS15L_W2026_Group1/Data")
-```
 
 
 ## Load the libraries
@@ -60,7 +57,7 @@ library(shinydashboard)
 ##Data Exploration for each dataset
 ##Data on pollen germination and bursting with different microbial treatments
 ```{r echo=TRUE}
-pollen_microbe<-read_csv("pollen_microbe_data.csv")%>%
+pollen_microbe<-read_csv("../Data/pollen_microbe_data.csv")%>%
   clean_names()%>%
   rename(microbe_treatment = microbetreatment) %>% 
   mutate(across(where(is.numeric), ~replace_na(., 0)))
@@ -390,16 +387,16 @@ library(janitor)
 library(shinythemes)
 
 # --- Data Preparation ---
-pollen_microbe <- read_csv("pollen_microbe_data.csv") %>%
+pollen_microbe <- read_csv("../Data/pollen_microbe_data.csv") %>%
   clean_names() %>%
   rename(microbe_treatment = microbetreatment) %>%
   mutate(across(where(is.numeric), ~replace_na(., 0)))
 
-dose_dependence <- read_csv("dose_dependence_data.csv") %>%
+dose_dependence <- read_csv("../Data/dose_dependence_data.csv") %>%
   clean_names() %>%
   rename(microbe_treatment = microbetreatment)
 
-protein_density <- read_csv("Lowry_data1.csv") %>%
+protein_density <- read_csv("../Data/Lowry_data1.csv") %>%
   clean_names() %>%
   rename(pollen_treatment = pollentreatment, microbe_treatment = microbetreatment)
 
