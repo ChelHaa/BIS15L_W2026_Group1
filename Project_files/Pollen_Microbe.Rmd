@@ -1,0 +1,45 @@
+---
+title: "Pollen_Microbe"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(janitor)
+library(naniar)
+library(lubridate)
+library(shiny)
+```
+
+#dose_dependence dataset
+```{r}
+pollen_micriobe<-read_csv("C:/Users/hache/OneDrive/Documents/Desktop/BIS15L_W2026_Group1/Data/pollen_microbe_data.csv")%>%
+  clean_names()
+```
+
+```{r}
+glimpse(pollen_micriobe)
+```
+```{r}
+summary(pollen_micriobe)
+```
+
+#microbe group and all germination
+```{r}
+pollen_micriobe %>%
+  
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h"))) %>% 
+  
+  ggplot(aes(x=microbetreatment,
+             y=allgerm,
+             fill=microbetreatment))+
+  geom_boxplot()+
+  facet_wrap(~timepoint, nrow=2)+
+  labs(title="Microbe Treatment and All Germinated",
+       x="Microbe Treatment",
+       y="Proportion of Germinated")+
+  theme_minimal()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
+
+#microbe group and all  burst

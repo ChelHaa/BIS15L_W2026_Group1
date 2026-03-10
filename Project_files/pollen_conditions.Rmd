@@ -1,12 +1,20 @@
 ---
-title: "Pollen_Microbe"
+title: "pollen_conditions"
 output: html_document
 ---
+
 ```{r}
+library(tidyverse)
 library(tidyverse)
 library(janitor)
 library(naniar)
 library(lubridate)
 library(shiny)
+```
+
+
+```{r}
+pollen_conditions<-read_csv()%>%
+  clean_names()
 ```
 

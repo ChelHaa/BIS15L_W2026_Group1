@@ -7,11 +7,12 @@ library(tidyverse)
 library(janitor)
 library(naniar)
 library(lubridate)
+library(shiny)
 ```
 
 #dose_dependence dataset
 ```{r}
-dose_dependence<-read_csv("doi_10_25338_B8BS75__v20210727/dose_dependence_data.csv")%>%
+dose_dependence<-read_csv("C:/Users/jenny/OneDrive/桌面/BIS15L_W2026_Group1/Nectar bacteria stimulate pollen germination/doi_10_25338_B8BS75__v20210727/dose_dependence_data.csv")%>%
   clean_names()
 ```
 
@@ -23,10 +24,7 @@ summary(dose_dependence)
 ```
 
 - actually microbe treatment and initial OD is the same but only the initial OD make the treatment into a number
-#graph of mircriobe treatment vs. germinated
--how does different dilution leads to different in germination
-- undiluted have greater performance =<3h
-- 1:20 have greater performance >3h
+#graph of mircriobe treatment vs. germinated 
 ```{r}
 dose_dependence%>%
   mutate(timepoint=factor(timepoint,
@@ -40,8 +38,7 @@ dose_dependence%>%
   labs(title="Concentration of A.pollinisSCC477 and Proportion Germinated",
        x="Microbe Treatment",
        y="Mean Proportion Germinated")+
-  theme(legend.position="none",
-        axis.text.x=element_text(angle=45, hjust=1))
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
 
 ```{r}
