@@ -53,7 +53,6 @@ library(ggplot2)
 
 ##Data Exploration for each dataset:
 
-
 ##Data on pollen germination and bursting with different microbial treatments
 
 ```{r echo=TRUE}
@@ -69,7 +68,6 @@ pollen_microbe_new <- pollen_microbe %>%
 ```
 
 Change NA values to 0 in columns with NA
-
 ```{r}
 pollen_microbe_new <- pollen_microbe_new %>%
   mutate(across(where(is.numeric), ~replace_na(., 0)))
@@ -80,14 +78,14 @@ pollen_microbe_new %>%
   distinct(microbe_group, microbe_treatment)
 ```
 
-Most germinated to the least germinated for each time point and microbe treatment
+Arrange the data from the most germinated to the least germinated for each time point and microbe treatment
+
 ```{r}
 pollen_microbe_new %>%
   select(timepoint, microbe_group, microbe_treatment, allgerm) %>%
   arrange(desc(allgerm))
 ```
 
-Number of germinated pollen grains with different microbial groups over time.
 ```{r echo=FALSE}
 pollen_microbe_new %>% 
   group_by(timepoint, microbe_group) %>%
@@ -95,14 +93,12 @@ pollen_microbe_new %>%
   geom_col(position = "dodge")+
   theme_bw()
 ```
-- The acinetobacter has the largest amount of germination at each timepoint, followed by the control, then the yeast. The control pectin degrader was used to rule out the idea that simply breaking open the pollen (by degrading pectin in the inner layer of the pollen grain) would result in germination; we can see that the control pectin degrader has very low germination, so we can rule out that idea. The acinetobacter treatment has the highest germination, which suggests that the acinetobacter is inducing germination.
+The acinetobacter has the largest amount of germination at each timepoint, followed by the control, then the yeast. The control pectin degrader was used to rule out the idea that simply breaking open the pollen (by degrading pectin in the inner layer of the pollen grain) would result in germination; we can see that the control pectin degrader has very low germination, so we can rule out that idea. The acinetobacter treatment has the highest germination, which suggests that the acinetobacter is inducing germination.
 
-- "Evidence presented here—including minimal effects of Pectobacterium, a known pectinase producer, and a lack of detected pectinase activity by Acinetobacter—suggest that pectinases alone are not responsible for the germination or bursting phenotype."
+"Evidence presented here—including minimal effects of Pectobacterium, a known pectinase producer, and a lack of detected pectinase activity by Acinetobacter—suggest that pectinases alone are not responsible for the germination or bursting phenotype."
 
 
-- We can see if the type of microbial group has any correlation with the number of germinated pollen (pollen tubes are fully grown), the number of grains that burst (pollen tubes are not fully grown and the pollen grain is broken), and the number of grains that burst at the tip.
-
-number_germ: the number of pollen grains with protruding pollen tubes in the image that are intact (not "tip burst") 	
+We can see if the type of microbial group has any correlation with the number of germinated pollen (pollen tubes are fully grown), the number of grains that burst (pollen tubes are not fully grown and the pollen grain is broken), and the number of grains that burst at the tip.
 ```{r echo=TRUE}
 pollen_microbe_new %>%
   group_by(microbe_group, timepoint) %>%
@@ -113,7 +109,7 @@ pollen_microbe_new %>%
   facet_wrap(~timepoint)+
   theme(axis.text.x = element_text(angle = 90))
 ```
-number_burst: the number of pollen grains that are burst (not protruding pollen tubes, but the pollen grain is broken)
+
 ```{r}
 pollen_microbe_new %>%
   group_by(microbe_group, timepoint) %>%
@@ -124,7 +120,7 @@ pollen_microbe_new %>%
   facet_wrap(~timepoint)+
   theme(axis.text.x = element_text(angle = 90))
 ```
-number_tip_burst: the number of pollen grains that are burst at the tip (protruding pollen tubes, but the tip of the tube is burst)
+
 ```{r}
 pollen_microbe_new %>%
   group_by(microbe_group, timepoint) %>%
@@ -136,32 +132,6 @@ pollen_microbe_new %>%
   theme(axis.text.x = element_text(angle = 90))
 ```
 From the three graphs, the acinetobacter increases total pollen bursting and tip bursting over time as well as in the burst before germination (no visible pollen tube). Using the number_burst variable, meaning this is before the pollen tube is fully grown, we can see that the acinetobacter has the highest number of burst pollen grains at each time point. This may mean that acinetobacter will induce burst-before-germination events, resulting in nutrients being released from the pollen grain before the pollen tube is fully grown.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -177,41 +147,23 @@ dose_dependence <-read_csv("dose_dependence_data.csv")%>%
 glimpse(dose_dependence)
 ```
 
-In a separate assay, we used a dilution series of A.pollinis SCC477 to determine whether concentration of it had an effect of pollen germination and bursting over 24 h. Make a table
-```{r}
-dose_dependence %>%
-  filter(timepoint=="45m") %>% 
-  group_by(microbe_treatment) %>%
-  summarise(mean_germinated = mean(allgerm),
-            mean_burst = mean(allburst)) %>% 
-  arrange(desc(mean_germinated))
-```
-
-Pollen exposed to the highest densities(less diluted or undiluted) of A. pollinis SCC477 germinated and burst much faster than pollen exposed to lower densities (more diluted). 
-```{r}
-dose_dependence %>%
-  filter(microbe_treatment== c("(undiluted)", "(1:20)", "(1:100)")) %>%
-  group_by(microbe_treatment, timepoint_clean) %>%
-  ggplot(aes(x = timepoint_clean, y = allgerm, fill = microbe_treatment))+
-  geom_col(position = "dodge")+
-  theme_bw()+
-  labs(x = "Time Point", y = "# Germinated", fill = "Microbe Treatment", title="# Germinated Pollen Grains with Different Microbial Treatments Over Time")
-```
 
 ```{r}
-tube_lengths_dose_dep <- read_csv("tube_lengths_dose_dependence_data.csv") %>%
-  clean_names()
+dose_dependence %>%
+  group_by(microbe_treatment) %>% 
+  arrange(desc(allgerm))
 ```
-Use the tube length to see if the pollen tubes are fully grown or not, and see if there is a correlation between tube length and the dilution of the microbe treatment.
+
+
 ```{r}
-tube_lengths_dose_dep %>%
-  group_by(dilution, minutes) %>%
-  ggplot(aes(x = minutes, y = length, fill = dilution))+
+dose_dependence %>%
+  filter(microbe_treatment == "(1:20)") %>%
+  ggplot(aes(x = minutes/60, y = allgerm))+
   geom_col(position = "dodge")+
   theme_bw()+
-  labs(x = "Time Point", y = "Tube Length (um)", fill = "Microbe Treatment", title="Tube Length of Germinated Pollen Grains with Different Microbial Treatments Over Time")
+  labs(x = "Hours", y = "# Germinated", title="# Germinated Pollen Grains with 1:20 Dilution of A. pollinis SCC477 Over Time")
 ```
-Pollen tubes also grew to shorter lengths when inoculated with higher concentrations of SCC477, which suggests that the pollen tubes may be bursting before they are fully grown when exposed to higher concentrations of SCC477. This is consistent with the idea that higher concentrations of SCC477 may induce more bursting events, which would result in shorter tube lengths.
+
 
 ##Data on microbial hemocytometer counts of A. pollinis, when provided different pollen treatments.
 
@@ -220,7 +172,7 @@ a_pollinis <- read_csv("Apollinis_benefit_data.csv") %>%
   clean_names()
 ```
 
-##Data on microbial hemocytometer counts of M. reukaufii, when provided different pollen treatments.
+##Data on microbial hemocytometer counts of M. reukaufii, when       provided different pollen treatments.
 
 ```{r}
 yeast_benefit <- read_csv("yeast_benefit_data.csv") %>%
@@ -231,8 +183,7 @@ yeast_benefit <- read_csv("yeast_benefit_data.csv") %>%
 
 ```{r}
 germination_burst <- read_csv("germ_AN.csv") %>%
-  clean_names() %>% 
-  rename(pollen_treatment = pollentreatment)
+  clean_names()
 ```
 
 ##Data on protein in solution after pollen (germinable or ungerminable or no pollen) exposure to SCC477 (or no inoculation).
@@ -247,6 +198,10 @@ protein_density <- read_csv("Lowry_data1.csv") %>%
 
 
 
+
+
+        
+
 ##Questions: 
 
 ## 1) What is the average number of Pollen germinated with microbial species compared to other microbial groups? (make sure to label the 15 mintues, 45 minutes, and 90 minutes on the x-axis)
@@ -260,27 +215,6 @@ pollen_microbe_new %>%
   coord_flip()+
   labs(x = "Time Point", y = "Mean # Germinated", fill = "Microbe Group", title="Mean # Germinated Pollen Grains with Different Microbial Groups Over Time")
 ```
-```{r}
-glimpse(germination_burst)
-```
-make 2 tables for the GP and UP for each treatment
-```{r}
-germination_burst %>%
-  filter(pollen_treatment == "GP") %>%
-  group_by(treatment) %>%
-  summarise(mean_germinated = mean(allgerm),
-            mean_burst = mean(allburst)) %>% 
-  arrange(desc(mean_germinated))
-```
-```{r}
-germination_burst %>%
-  filter(pollen_treatment == "UP") %>%
-  group_by(treatment) %>%
-  summarise(mean_germinated = mean(allgerm),
-            mean_burst = mean(allburst)) %>% 
-  arrange(desc(mean_germinated))
-```
-
 
 ## 2) How does the percentage of pollen germinated change over time with different microbial species? (Relationship between pollen germination and time)
 ```{r}
@@ -341,19 +275,12 @@ protein_density%>%
 
 
 
+
+
+
 ##Shiny App
 ```{r}
-library(shiny)
 
-ui <- fluidPage(
-  
-)
-
-server <- function(input, output, session) {
-  
-}
-
-shinyApp(ui, server)
 ```
 
 

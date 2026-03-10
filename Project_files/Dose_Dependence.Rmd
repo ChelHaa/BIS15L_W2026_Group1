@@ -7,11 +7,12 @@ library(tidyverse)
 library(janitor)
 library(naniar)
 library(lubridate)
+library(shiny)
 ```
 
 #dose_dependence dataset
 ```{r}
-dose_dependence<-read_csv("doi_10_25338_B8BS75__v20210727/dose_dependence_data.csv")%>%
+dose_dependence<-read_csv("C:/Users/jenny/OneDrive/桌面/BIS15L_W2026_Group1/Nectar bacteria stimulate pollen germination/doi_10_25338_B8BS75__v20210727/dose_dependence_data.csv")%>%
   clean_names()
 ```
 
@@ -24,11 +25,6 @@ summary(dose_dependence)
 
 - actually microbe treatment and initial OD is the same but only the initial OD make the treatment into a number
 #graph of mircriobe treatment vs. germinated 
--examine how is the proportion germinated change for each time point and microbetreatment
-- undiluted appears to have higher germination <=3h
-  - after 3h ---> competition?
-  - burst?
-- 1:20 have higher germination >3h
 ```{r}
 dose_dependence%>%
   mutate(timepoint=factor(timepoint,
@@ -42,12 +38,9 @@ dose_dependence%>%
   labs(title="Concentration of A.pollinisSCC477 and Proportion Germinated",
        x="Microbe Treatment",
        y="Mean Proportion Germinated")+
-  theme(legend.position="none",
-        axis.text.x=element_text(angle=45, hjust=1))
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
-- undiluted appears to maintained its position in proportion of germinated if using allgerm(The proportion of pollen grains that germinated, including both "number.germ" and "number.tip.burst")
--maybe many pollen quickly being burst
-- might indicated higher concentration increase both bursting and germination
+
 ```{r}
 dose_dependence %>%
   mutate(timepoint=factor(timepoint,
@@ -61,12 +54,10 @@ dose_dependence %>%
        x="Microbe Treatment",
        y="Proportion of Germinated")+
   theme_minimal()+
-  theme(legend.position="none",
-        axis.text.x=element_text(angle=45, hjust=1))
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
 
 #whether treatment accelerates germination
-- make time point to same unit
 ```{r}
 dose_dependence <- dose_dependence %>%
   mutate(time_minutes=case_when(
@@ -80,29 +71,23 @@ dose_dependence <- dose_dependence %>%
            timepoint=="24h" ~ 1440))
 ```
 
-- except sterile BK all other dilution appears to come to a constant
-- maximum germination after a long time?
-- Peak germination appears highest for 1:20
-- Final/long-term germination appears highest for 1:2
 ```{r}
 dose_dependence%>%
   group_by(microbetreatment, time_minutes)%>%
   summarize(mean_germ=mean(allgerm, na.rm=TRUE)) %>%
-  ggplot(aes(x=time_minutes, 
-             y=mean_germ,
-             color=microbetreatment))+
+  ggplot(aes(time_minutes, mean_germ,
+             color=microbetreatment,
+             group=microbetreatment))+
   geom_point()+
   geom_line()+
   labs(
-    title="Relationship Between Concentration of A.pollinisSCC477 and Mean Germinated",
-    x="Time point(minute)",
-    y="Mean Germinated")+
+    title="Relationship Between Concentration of A.pollinisSCC477 and Proportion of All Germinated",
+    x="Time point",
+    y="Proportion of All Germinated")+
   theme_minimal()
 ```
 
 #graph of mircriobe treatment vs. brust 
-- longer time --> more burst
-- higher concentration ---> more bursting
 ```{r}
 dose_dependence%>%
   mutate(timepoint=factor(timepoint,
@@ -116,49 +101,51 @@ dose_dependence%>%
   labs(title="Concentration of A.pollinisSCC477 and Proportion Burst",
        x="Microbe Treatment",
        y="Mean Proportion Germinated")+
-  theme(legend.position="none",
-        axis.text.x=element_text(angle=45, hjust=1))
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
 
 #graph of initial OD vs. germination
 - removed sterile BK because its od is 0
-- repetitive with above graph
 ```{r}
-#dose_dependence%>%
-#  filter(microbetreatment!="sterile BK") %>%
-#  mutate(timepoint=factor(timepoint,
-#         levels=c("15m","45m","90m","3h","4h","6h","12h","24h"))) %>%
-#  pivot_longer(
-#    cols=c(allgerm, allburst),
-#    names_to="response",
-#    values_to="value")%>%
-#  ggplot(aes(x = factor(initial_od), y = value)) +
-#  geom_boxplot(fill = "lightblue") +
-#  facet_grid(response ~ timepoint) +
-#  theme_minimal() +
-#  labs(
-#    title="Relationship Between Initial OD and Germination/Bursting",
-#    x ="Initial OD",
-#    y ="Proportion")+
-# theme(axis.text.x = element_text(angle = 45, hjust = 1))
+dose_dependence%>%
+  filter(microbetreatment!="(sterile BK)")%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  pivot_longer(cols=c(allgerm, allburst),
+               names_to="response",
+               values_to="value")%>%
+  ggplot(aes(x=initial_od,
+             y=value,
+             color=microbetreatment))+
+  geom_point(alpha = 0.7, size=2)+
+  geom_smooth(method=lm, se=T)+
+  facet_grid(response~timepoint)+
+  theme_minimal()+
+  labs(title="Relationship between OD and Germination/Bursting",
+       x="Initial OD",
+       y="Proportion",
+       color="Microbe Treatment")+
+  scale_x_log10(breaks=c(0.001, 0.01, 0.1))+
+  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="bottom")
 ```
 #relationship between brust and germination
 -not so useful graph--> don't use
 ```{r}
-#dose_dependence%>%
-#  mutate(timepoint=factor(timepoint,
-#         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
-#  ggplot(aes(x=allgerm,
-#             y=allburst,
-#             color=microbetreatment))+
-#  geom_point()+
-#  geom_smooth(method=lm, se=F)+
-#  facet_wrap(~timepoint, nrow=2)+
-#  theme(legend.position="bottom")+
-#  labs(
-#    title="Relationship between Germination and Bursting",
-#    x="Proportion Germinated",
-#    y="Proportion Burst",
-#    color="Microbe Treatment")
+dose_dependence%>%
+  mutate(timepoint=factor(timepoint,
+         levels=c("15m","45m","90m","3h","4h","6h","12h","24h")))%>%
+  ggplot(aes(x=allgerm,
+             y=allburst,
+             color=microbetreatment))+
+  geom_point()+
+  geom_smooth(method=lm, se=T)+
+  facet_wrap(~timepoint, nrow=2)+
+  theme(legend.position="bottom")+
+  labs(
+    title="Relationship between Germination and Bursting",
+    x="Proportion Germinated",
+    y="Proportion Burst",
+    color="Microbe Treatment"
+  )
 ```
 
