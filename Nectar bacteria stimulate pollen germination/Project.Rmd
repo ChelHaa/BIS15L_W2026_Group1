@@ -434,6 +434,131 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
+```{r}
+  library(shiny)
+library(tidyverse)
+library(janitor)
+
+pollen_microbe <- read_csv("pollen_microbe_data.csv") %>%
+  clean_names() %>%
+  rename(microbe_treatment = microbetreatment) %>%
+  mutate(across(where(is.numeric), ~replace_na(., 0)))
+
+dose_dependence <- read_csv("dose_dependence_data.csv") %>%
+  clean_names() %>%
+  rename(microbe_treatment = microbetreatment)
+
+ui <- fluidPage(
+  
+  tags$head(
+    tags$style(HTML("
+      body {
+        background-color: #FFFFE0; /* LightYellow */
+        color: black;              /* Font color */
+      }
+      .well {
+        background-color: #FFFACD; /* LemonChiffon for the sidebar panel */
+        border-color: #F0E68C;     /* Khaki border */
+      }
+    "))
+  ),
+  
+  
+  theme = shinythemes::shinytheme("spacelab"),
+  titlePanel("Pollen Germination Explorer"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      # Dropdown for Microbe Group
+      selectInput("group_select", 
+                  "1. Choose Microbe Group:", 
+                  choices = unique(pollen_microbe$microbe_group),
+                  selected = "Acinetobacter"),
+      
+     
+      uiOutput("treatment_selector"),
+      
+      hr(),
+      h4("Filter Dose Data"),
+      checkboxGroupInput("dose_select", "2. Select SCC477 Dilutions:",
+                         choices = unique(dose_dependence$microbe_treatment),
+                         selected = unique(dose_dependence$microbe_treatment))
+    ),
+    
+   mainPanel(
+      h3("Microbe Group Results"),
+      plotOutput("germ_plot"),
+      
+      hr(),
+      h3("Dose Dependence (SCC477) Results"),
+      plotOutput("dose_plot")
+    )
+  )
+)
+
+# --- Server Section ---
+server <- function(input, output, session) {
+  
+
+  output$treatment_selector <- renderUI({
+    available_treatments <- pollen_microbe %>%
+      filter(microbe_group == input$group_select) %>%
+      pull(microbe_treatment) %>%
+      unique()
+    
+    checkboxGroupInput("treat_select", 
+                       "2. Select Microbe Treatments:", 
+                       choices = available_treatments,
+                       selected = available_treatments[1])
+  })
+  
+ 
+output$treatment_selector <- renderUI({
+    available_treatments <- pollen_microbe %>%
+      filter(microbe_group == input$group_select) %>%
+      pull(microbe_treatment) %>%
+      unique()
+    
+    checkboxGroupInput("treat_select", "Select Microbe Treatments:", 
+                       choices = available_treatments,
+                       selected = available_treatments[1])
+  })
+  
+  # Plot 1: Pollen Microbe Bar Plot
+  output$germ_plot <- renderPlot({
+    req(input$treat_select)
+    pollen_microbe %>%
+      filter(microbe_group == input$group_select,
+             microbe_treatment %in% input$treat_select) %>%
+      ggplot(aes(x = microbe_treatment, y = allgerm, fill = microbe_treatment)) +
+      geom_col(position = "dodge", color = "black") +
+      facet_wrap(~timepoint) +
+      theme_minimal() +
+      labs(title = paste("Germination by Group:", input$group_select),
+           x = "Treatment", y = "Total Germination") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  })
+  
+  # Plot 2: Dose Dependence Box Plot
+  output$dose_plot <- renderPlot({
+    req(input$dose_select)
+    dose_dependence %>%
+      filter(microbe_treatment %in% input$dose_select) %>%
+      # Ensure timepoints are ordered correctly
+      mutate(timepoint = factor(timepoint, levels = c("15m","45m","90m","3h","4h","6h","12h","24h"))) %>%
+      ggplot(aes(x = microbe_treatment, y = proportion_germinated, fill = microbe_treatment)) +
+      geom_boxplot(color = "black") +
+      facet_wrap(~timepoint, nrow = 2) +
+      theme_minimal() +
+      labs(title = "Concentration of A. pollinis SCC477 vs. Proportion Germinated",
+           x = "Dilution Treatment", y = "Proportion Germinated") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  })
+}
+
+shinyApp(ui, server)
+
+```
 
 
 
