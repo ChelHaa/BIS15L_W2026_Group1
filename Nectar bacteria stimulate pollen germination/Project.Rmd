@@ -10,9 +10,8 @@ output:
 editor_options: 
   chunk_output_type: inline
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_knit$set(root.dir = "/Users/chelsth1/Desktop/BIS15L_W2026_Group1/Data")
+```{r}
+df <- read_csv("../Data/pollen_microbe_data.csv")
 ```
 
 
@@ -148,7 +147,7 @@ From the three graphs, the acinetobacter increases total pollen bursting and tip
 
 ##Data on proportion of grains germinated with different dilutions of A. pollinisSCC477 over time. (Jenny)
 ```{r}
-dose_dependence <-read_csv("dose_dependence_data.csv")%>%
+dose_dependence <-read_csv("../Data/dose_dependence_data.csv")%>%
   clean_names() %>% 
   rename(microbe_treatment = microbetreatment)
 ```
@@ -205,7 +204,7 @@ dose_dependence %>%
 
 ##Data on microbial hemocytometer counts of A. pollinis, when provided different pollen treatments. (Chelsea)
 ```{r}
-a_pollinis <- read_csv("Apollinis_benefit_data.csv") %>%
+a_pollinis <- read_csv("../Data/Apollinis_benefit_data.csv") %>%
   clean_names()
 ```
 ```{r}
@@ -222,12 +221,15 @@ a_pollinis %>%
 FP (fresh pollen) + A.pollinis had the greatest change in microbial density. This suggests that the presence of pollen may increase microbial growth, and that the type of pollen may also have an effect on microbial growth. The FP pollen treatment may provide more nutrients for microbial growth compared to the FP alone (pollen by itself) UP (ungerminable pollen) treatments without the A.pollinis bacteria, which could explain the greater increase in microbial density observed in the FP treatment.
 
 
+```{r}
+getwd()
+```
 
 
 
 ##Data on microbial hemocytometer counts of M. reukaufii, when provided different pollen treatments. (Chelsea)
 ```{r}
-yeast_benefit <- read_csv("yeast_benefit_data.csv") %>%
+yeast_benefit <- read_csv("../Data/yeast_benefit_data.csv") %>%
   clean_names()
 ```
 
@@ -251,7 +253,7 @@ yeast_benefit %>%
 
 ##Data on germination and bursting after pollen (germinable or ungerminable) exposure to SCC477 (or no inoculation). (Chelsea)
 ```{r}
-germination_burst <- read_csv("germ_AN.csv") %>%
+germination_burst <- read_csv("../Data/germ_AN.csv") %>%
   clean_names() %>% 
   rename(pollen_treatment = pollentreatment)
 ```
@@ -267,7 +269,7 @@ We can see that the germinable pollen with SCC477 had the most germination and b
 ##Data on protein in solution after pollen (germinable or ungerminable or no pollen) exposure to SCC477 (or no inoculation). (Chelsea)
 
 ```{r}
-protein_density <- read_csv("Lowry_data1.csv") %>%
+protein_density <- read_csv("../Data/Lowry_data1.csv") %>%
   clean_names() %>% 
   rename(pollen_treatment = pollentreatment,
          microbe_treatment = microbetreatment)
