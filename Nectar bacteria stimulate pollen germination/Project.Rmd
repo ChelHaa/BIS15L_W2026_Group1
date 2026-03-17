@@ -34,16 +34,17 @@ library(shinydashboard)
 
 ##Todo List
 
-1.  Clean Data
+1. Jenny - Clean Data 
     -   make nice names with underscores
     -   change the ns (not significant) to NA so that we can use naniar to visualize missing data and also so that it doesn't mess with our graphs.
-2.  Introduction - what is our research topic? List ideas below:
+2.  Jenny - Introduction - what is our research topic? List ideas below:
     -   pollen germination and bursting across different microbial treatments and how this affects the microbial density
-3.  Methods - how will we analyze
+3.  Chelsea/Jenny - Methods - how will we analyze
     -   use tidyverse to clean data and make graphs, use shiny to make an interactive app to explore the data
-4.  Visuals - graphs, what are our key variables?
+4.  Chelsea - Visuals - graphs, what are our key variables?
     -   microbe treatment, time point, proportion germinated, proportion burst, microbial density
-5.  Conclusion:
+    - Shiny App
+5.  Chelsea - Conclusion:
     -   summarize what we found and how it relates to the research question.
     -   future directions: what are some next steps we can take to further explore this topic?
 6.  Organize Repository (going off the example given, but we can refine)
@@ -55,7 +56,7 @@ library(shinydashboard)
 
 
 ##Data Exploration for each dataset
-##Data on pollen germination and bursting with different microbial treatments
+##Data on pollen germination and bursting with different microbial treatments (Jenny)
 ```{r echo=TRUE}
 pollen_microbe<-read_csv("pollen_microbe_data.csv")%>%
   clean_names()%>%
@@ -127,7 +128,7 @@ From the three graphs, the acinetobacter increases total pollen bursting and tip
 
 
 
-##Data on proportion of grains germinated with different dilutions of A. pollinisSCC477 over time.
+##Data on proportion of grains germinated with different dilutions of A. pollinisSCC477 over time. (Jenny)
 ```{r}
 dose_dependence <-read_csv("dose_dependence_data.csv")%>%
   clean_names() %>% 
@@ -184,7 +185,7 @@ dose_dependence %>%
 ```
 
 
-##Data on microbial hemocytometer counts of A. pollinis, when provided different pollen treatments.
+##Data on microbial hemocytometer counts of A. pollinis, when provided different pollen treatments. (Chelsea)
 ```{r}
 a_pollinis <- read_csv("Apollinis_benefit_data.csv") %>%
   clean_names()
@@ -206,7 +207,7 @@ FP (fresh pollen) + A.pollinis had the greatest change in microbial density. Thi
 
 
 
-##Data on microbial hemocytometer counts of M. reukaufii, when provided different pollen treatments.
+##Data on microbial hemocytometer counts of M. reukaufii, when provided different pollen treatments. (Chelsea)
 ```{r}
 yeast_benefit <- read_csv("yeast_benefit_data.csv") %>%
   clean_names()
@@ -230,8 +231,7 @@ yeast_benefit %>%
 ```
 
 
-##Data on germination and bursting after pollen (germinable or ungerminable) exposure to SCC477 (or no inoculation).
-
+##Data on germination and bursting after pollen (germinable or ungerminable) exposure to SCC477 (or no inoculation). (Chelsea)
 ```{r}
 germination_burst <- read_csv("germ_AN.csv") %>%
   clean_names() %>% 
@@ -246,7 +246,7 @@ germination_burst %>%
 We can see that the germinable pollen with SCC477 had the most germination and bursting, which suggests that the presence of SCC477 may induce germination and bursting in pollen. The control treatments without SCC477 had very low germination and bursting, which suggests that the presence of SCC477 may be necessary for inducing germination and bursting in pollen.
 
 
-##Data on protein in solution after pollen (germinable or ungerminable or no pollen) exposure to SCC477 (or no inoculation).
+##Data on protein in solution after pollen (germinable or ungerminable or no pollen) exposure to SCC477 (or no inoculation). (Chelsea)
 
 ```{r}
 protein_density <- read_csv("Lowry_data1.csv") %>%
@@ -290,7 +290,7 @@ my_cols <- c("#f8e308",
              "#b30c0c")
 ```
 
-## 1) What is the average number of Pollen germinated with microbial species compared to other microbial groups? (make sure to label the 15 mintues, 45 minutes, and 90 minutes on the x-axis)
+## 1) What is the average number of Pollen germinated with microbial species compared to other microbial groups? (make sure to label the 15 mintues, 45 minutes, and 90 minutes on the x-axis) (Jenny)
 ```{r}
 pollen_microbe %>%
   group_by(microbe_group, timepoint) %>%
@@ -306,7 +306,7 @@ theme_tufte()+
   scale_fill_manual(values=my_cols)
 ```
 
-## 2) How does the microbial density change with different pollen conditions? (Relationship between bacterial density and pollen germination)
+## 2) How does the microbial density change with different pollen conditions? (Relationship between bacterial density and pollen germination) (Jenny)
 ```{r}
 a_pollinis %>%
   group_by(date, treatment_l) %>%
@@ -318,7 +318,7 @@ a_pollinis %>%
   scale_fill_manual(values=my_cols)
 ```
 
-## 3) Microbial growth with different pollen conditions
+## 3) Microbial growth with different pollen conditions (Jenny)
 ```{r}
 a_pollinis_wide <- a_pollinis %>%
   group_by(date) %>% 
@@ -339,7 +339,7 @@ a_pollinis
 ```{r}
 names(a_pollinis)
 ```
-
+##Jenny 
 ```{r}
 a_pollinis %>%
   group_by(treatment_l) %>%
@@ -348,7 +348,7 @@ a_pollinis %>%
   geom_col(fill = "steelblue")
 ```
 
-## 4) Does pollen germination increase microbial growth?
+## 4) Does pollen germination increase microbial growth? (Chelsea)
 ```{r}
 protein_density%>%
   group_by(pollen_treatment, microbe_treatment) %>%
@@ -363,7 +363,7 @@ protein_density%>%
 
 
 
-##Shiny App
+##Shiny App (Chelsea)
 
 Goal: Create a Shiny App that shows the Results of adding Microbial Bacteria (mainly the Acinetobacter) to pollen and how it affects pollen germination and bursting over time. The app will also show the effects of different dilutions of A. pollinis SCC477 on pollen germination over time as well as the protein densities overtime after treatment. 
 
