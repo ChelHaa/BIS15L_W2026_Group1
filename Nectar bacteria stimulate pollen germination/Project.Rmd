@@ -9,12 +9,7 @@ output:
     toc_float: yes
 editor_options: 
   chunk_output_type: inline
----
-```{r}
-df <- read_csv("../Data/pollen_microbe_data.csv")
-```
-
-
+  
 ## Load the libraries
 
 ```{r message=FALSE, warning=FALSE}
@@ -27,6 +22,11 @@ library("paletteer")
 library(ggplot2)
 library(shinythemes)
 library(shinydashboard)
+```
+
+---
+```{r}
+df <- read_csv("../Data/pollen_microbe_data.csv")
 ```
 
 ##Contents of the Project:
