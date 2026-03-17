@@ -1,7 +1,10 @@
-## Nectar bacteria stimulate pollen germination and bursting to enhance microbial fitness
+## 🐝 Nectar bacteria stimulate pollen germination and bursting to enhance microbial fitness🐝
+This study demonstrates that nectar bacteria, specifically the 
+Acinetobacter species, can induce pollen germination and bursting to access nutrients and enhance their growth.
 
 
 ## Overview of the Research:  
+Scientists from UC Davis Department of Entomoogy and Nematology have discovered evidence that the genus Acinetobacter, prevalent nectar- and bee-associated bacteria can induce pollen germination and bursting, gain access to protoplasm nutrients, and thereby grow to higher densities.
 
 ## Article and Additional Resources  
 
