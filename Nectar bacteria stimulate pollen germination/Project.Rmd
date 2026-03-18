@@ -9,29 +9,24 @@ output:
     toc_float: yes
 editor_options: 
   chunk_output_type: inline
-  
-## Load the libraries
+---
 
-```{r message=FALSE, warning=FALSE}
-library(tidyverse)
-library(janitor)
-library(naniar)
+## Load the libraries and data
+```{r}
+library("tidyverse")
+library("janitor")
+library("naniar")
 library("ggthemes")
 library("RColorBrewer")
 library("paletteer")
-library(ggplot2)
-library(shinythemes)
+library("shinythemes")
 library(shinydashboard)
-```
-
----
-```{r}
 df <- read_csv("../Data/pollen_microbe_data.csv")
 ```
 
-##Contents of the Project:
+## Contents of the Project:
 
-##Todo List
+## Todo List
 
 1. Jenny - Clean Data 
     -   make nice names with underscores
@@ -53,16 +48,14 @@ df <- read_csv("../Data/pollen_microbe_data.csv")
     -   exploring data
     -   graphs
 
-
-##Data Exploration for each dataset
-##Data on pollen germination and bursting with different microbial treatments (Jenny)
+## Data Exploration for each dataset
+## Data on pollen germination and bursting with different microbial treatments (Jenny)
 ```{r echo=TRUE}
 pollen_microbe<-read_csv("../Data/pollen_microbe_data.csv")%>%
   clean_names()%>%
   rename(microbe_treatment = microbetreatment) %>% 
   mutate(across(where(is.numeric), ~replace_na(., 0)))
 ```
-
 
 ```{r}
 pollen_microbe%>% 
@@ -76,7 +69,6 @@ pollen_microbe %>%
   arrange(desc(allgerm))
 ```
 
-
 ```{r}
 #theme and colors
 colors <- paletteer::palettes_d_names
@@ -88,7 +80,7 @@ my_cols <- c("#f8e308",
              "#b30c0c")
 ```
 
-```{r echo=FALSE}
+```{r}
 pollen_microbe %>% 
   group_by(timepoint, microbe_group) %>%
   ggplot(aes(x = timepoint, y = allgerm, fill = microbe_group))+
@@ -96,13 +88,14 @@ pollen_microbe %>%
   theme_bw()+
   scale_fill_manual(values=my_cols)
 ```
-The acinetobacter has the largest amount of germination at each timepoint, followed by the control, then the yeast. The control pectin degrader was used to rule out the idea that simply breaking open the pollen (by degrading pectin in the inner layer of the pollen grain) would result in germination; we can see that the control pectin degrader has very low germination, so we can rule out that idea. The acinetobacter treatment has the highest germination, which suggests that the acinetobacter is inducing germination.
 
-"Evidence presented here—including minimal effects of Pectobacterium, a known pectinase producer, and a lack of detected pectinase activity by Acinetobacter—suggest that pectinases alone are not responsible for the germination or bursting phenotype."
+The acinetobacter has the largest amount of germination at each timepoint, followed by the control, then the yeast. The control pectin degrader was used to rule out the idea that simply breaking open the pollen (by degrading pectin in the inner layer of the pollen grain) would result in germination; we can see that the control pectin degrader has very low germination, so we can rule out that idea. The acinetobacter treatment has the highest germination, which suggests that the acinetobacter is inducing germination.  
 
+"Evidence presented here—including minimal effects of Pectobacterium, a known pectinase producer, and a lack of detected pectinase activity by Acinetobacter—suggest that pectinases alone are not responsible for the germination or bursting phenotype."  
 
-We can see if the type of microbial group has any correlation with the number of germinated pollen (pollen tubes are fully grown), the number of grains that burst (pollen tubes are not fully grown and the pollen grain is broken), and the number of grains that burst at the tip.
-```{r echo=TRUE}
+We can see if the type of microbial group has any correlation with the number of germinated pollen (pollen tubes are fully grown), the number of grains that burst (pollen tubes are not fully grown and the pollen grain is broken), and the number of grains that burst at the tip.  
+
+```{r}
 pollen_microbe %>%
   group_by(microbe_group, timepoint) %>%
   ggplot(aes(x = microbe_group, y = number_germ, fill = microbe_group))+
@@ -141,11 +134,10 @@ pollen_microbe %>%
   facet_wrap(~timepoint)+
   theme(axis.text.x = element_text(angle = 45, hjust=1))
 ```
+
 From the three graphs, the acinetobacter increases total pollen bursting and tip bursting over time as well as in the burst before germination (no visible pollen tube). Using the number_burst variable, meaning this is before the pollen tube is fully grown, we can see that the acinetobacter has the highest number of burst pollen grains at each time point. This may mean that acinetobacter will induce burst-before-germination events, resulting in nutrients being released from the pollen grain before the pollen tube is fully grown.
 
-
-
-##Data on proportion of grains germinated with different dilutions of A. pollinisSCC477 over time. (Jenny)
+## Data on proportion of grains germinated with different dilutions of A. pollinisSCC477 over time. (Jenny)
 ```{r}
 dose_dependence <-read_csv("../Data/dose_dependence_data.csv")%>%
   clean_names() %>% 
@@ -169,7 +161,7 @@ dose_dependence <- dose_dependence %>%
 glimpse(dose_dependence)
 ```
 
-graph of microbe treatment(dilution) vs. proportion germinated 
+## graph of microbe treatment(dilution) vs. proportion germinated 
 ```{r}
 dose_dependence%>%
   mutate(timepoint=factor(timepoint,
@@ -185,6 +177,7 @@ dose_dependence%>%
        y="Proportion Germinated")+
   theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
+
 ```{r}
 dose_dependence %>%
   mutate(timepoint=factor(timepoint,
@@ -201,8 +194,7 @@ dose_dependence %>%
   theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
 
-
-##Data on microbial hemocytometer counts of A. pollinis, when provided different pollen treatments. (Chelsea)
+## Data on microbial hemocytometer counts of A. pollinis, when provided different pollen treatments. (Chelsea)
 ```{r}
 a_pollinis <- read_csv("../Data/Apollinis_benefit_data.csv") %>%
   clean_names()
@@ -218,16 +210,10 @@ a_pollinis %>%
   summarise(mean_delta=mean(final_count_24h - initial_count, na.rm = TRUE)) %>% 
   arrange(desc(mean_delta)) 
 ```
+
 FP (fresh pollen) + A.pollinis had the greatest change in microbial density. This suggests that the presence of pollen may increase microbial growth, and that the type of pollen may also have an effect on microbial growth. The FP pollen treatment may provide more nutrients for microbial growth compared to the FP alone (pollen by itself) UP (ungerminable pollen) treatments without the A.pollinis bacteria, which could explain the greater increase in microbial density observed in the FP treatment.
 
-
-```{r}
-getwd()
-```
-
-
-
-##Data on microbial hemocytometer counts of M. reukaufii, when provided different pollen treatments. (Chelsea)
+## Data on microbial hemocytometer counts of M. reukaufii, when provided different pollen treatments. (Chelsea)
 ```{r}
 yeast_benefit <- read_csv("../Data/yeast_benefit_data.csv") %>%
   clean_names()
@@ -240,9 +226,8 @@ yeast_benefit %>%
   summarise(mean_delta=mean(final_count_24h - initial_count, na.rm = TRUE)) %>% 
   arrange(desc(mean_delta))
 ```
-This table shows that the FP (fresh pollen) + yeast treatment had the greatest change in microbial density followed by the yeast with ungerminable or fresh pollen. We can infer that with pollen, the yeast will have more nutrients to grow, and that the type of pollen may also have an effect on microbial growth. The FP pollen treatment may provide more nutrients for microbial growth 
 
-
+This table shows that the FP (fresh pollen) + yeast treatment had the greatest change in microbial density followed by the yeast with ungerminable or fresh pollen. We can infer that with pollen, the yeast will have more nutrients to grow, and that the type of pollen may also have an effect on microbial growth. The FP pollen treatment may provide more nutrients for microbial growth.  
 ```{r}
 yeast_benefit %>% 
   ggplot(aes(x = treatment_l, y = final_count_24h - initial_count, fill = treatment_l)) +
@@ -250,24 +235,23 @@ yeast_benefit %>%
   labs(x = "Treatment", y = "Yeast Density", fill = "Treatment", title="Change in Yeast Density with Different Pollen Treatments")
 ```
 
-
-##Data on germination and bursting after pollen (germinable or ungerminable) exposure to SCC477 (or no inoculation). (Chelsea)
+## Data on germination and bursting after pollen (germinable or ungerminable) exposure to SCC477 (or no inoculation). (Chelsea)
 ```{r}
 germination_burst <- read_csv("../Data/germ_AN.csv") %>%
   clean_names() %>% 
   rename(pollen_treatment = pollentreatment)
 ```
+
 Out of all the germinable pollen treatments, which had the most germination and bursting?
 ```{r}
 germination_burst %>% 
   filter(pollen_treatment=="GP" & timepoint== "24h") %>%
   arrange(desc(germ)) 
 ```
+
 We can see that the germinable pollen with SCC477 had the most germination and bursting, which suggests that the presence of SCC477 may induce germination and bursting in pollen. The control treatments without SCC477 had very low germination and bursting, which suggests that the presence of SCC477 may be necessary for inducing germination and bursting in pollen.
 
-
-##Data on protein in solution after pollen (germinable or ungerminable or no pollen) exposure to SCC477 (or no inoculation). (Chelsea)
-
+## Data on protein in solution after pollen (germinable or ungerminable or no pollen) exposure to SCC477 (or no inoculation). (Chelsea)
 ```{r}
 protein_density <- read_csv("../Data/Lowry_data1.csv") %>%
   clean_names() %>% 
@@ -288,18 +272,14 @@ protein_density %>%
   group_by(microbe_treatment) %>%
   arrange(desc(protein))
 ```
+
 This table shows protein concentrations from ungerminated pollen samples with different microbial treatments. The data suggest that microbial presence, particularly A. pollinis, may increase the amount of protein released from pollen over time.
 
 
-##Questions + Graphs for Presentation:
+## Questions + Graphs for Presentation:
 ```{r}
 ls("package:ggthemes")[grepl("theme_", ls("package:ggthemes"))]
 ```
-```{r}
-?RColorBrewer
-```
-
-
 
 ## 1) What is the average number of Pollen germinated with microbial species compared to other microbial groups? (make sure to label the 15 mintues, 45 minutes, and 90 minutes on the x-axis) (Jenny)
 ```{r}
@@ -372,17 +352,14 @@ protein_density%>%
   scale_fill_manual(values=my_palette)
 ```
 
-
-
 ##Shiny App (Chelsea)
-
 Goal: Create a Shiny App that shows the Results of adding Microbial Bacteria (mainly the Acinetobacter) to pollen and how it affects pollen germination and bursting over time. The app will also show the effects of different dilutions of A. pollinis SCC477 on pollen germination over time as well as the protein densities overtime after treatment. 
 
-- Build a shiny app that lets researchers see the effects of the microbial treatments on the stages of pollen (premature pollen, bursted pollen before germination, and germinated pollen that has bursted at the tip). Users can also choose whether the pollen is germinable or ungerminable. 
-- The app will show the number of pollen grains that are germinated, bursted before germination, and bursted at the tip for each microbial treatment and time point. This will allow researchers to easily see the effects of the microbial treatments on pollen germination and bursting.
-- The app will also allow users to see the effects of different dilutions of A. pollinis SCC477 on pollen germination over time. This will allow researchers to see if there is a dose-dependent relationship between A. pollinis SCC477 and pollen germination.
+- Build a shiny app that lets researchers see the effects of the microbial treatments on the stages of pollen (premature pollen, bursted pollen before germination, and germinated pollen that has bursted at the tip). Users can also choose whether the pollen is germinable or ungerminable.  
+- The app will show the number of pollen grains that are germinated, bursted before germination, and bursted at the tip for each microbial treatment and time point. This will allow researchers to easily see the effects of the microbial treatments on pollen germination and bursting.  
+- The app will also allow users to see the effects of different dilutions of A. pollinis SCC477 on pollen germination over time. This will allow researchers to see if there is a dose-dependent relationship between A. pollinis SCC477 and pollen germination.  
 
-```{r}
+```{r, eval=F, echo=T}
 library(shiny)
 library(tidyverse)
 library(janitor)
@@ -517,18 +494,16 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-
-
-##Exploration of Pollen Microbe Data (Jenny)
-
+## Exploration of Pollen Microbe Data (Jenny)
 ```{r}
 glimpse(pollen_microbe)
 ```
+
 ```{r}
 summary(pollen_microbe)
 ```
+distribution of microbe group (shows the number of samples for each microbe group, which is important to know for our analysis).  
 
-distribution of microbe group (shows the number of samples for each microbe group, which is important to know for our analysis)
 ```{r}
 pollen_microbe %>%
   ggplot(aes(x=microbe_group, fill=microbe_group))+
@@ -540,7 +515,8 @@ pollen_microbe %>%
     y="Count")+
   theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
-microbe group and all germination
+
+microbe group and all germination.  
 ```{r}
 pollen_microbe%>%
   ggplot(aes(x=microbe_group, y=allgerm, fill=microbe_group))+
@@ -555,9 +531,7 @@ pollen_microbe%>%
   scale_fill_manual(values=my_cols)
 ```
 
-
-
-germination and time
+germination and time.  
 ```{r}
 pollen_microbe%>%
   group_by(microbe_group, timepoint)%>%
@@ -575,12 +549,6 @@ pollen_microbe%>%
     color="Microbe Group")+
   scale_fill_manual(values=my_cols)
 ```
-
-
-
-
-
-
 
 ## Exploration of Dose Dependency Data (Jenny)
 ```{r}
@@ -607,7 +575,7 @@ dose_dependence %>%
   theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
 
-whether treatment accelerates germination
+whether treatment accelerates germination.  
 ```{r}
 dose_dependence <- dose_dependence %>%
   mutate(time_minutes=case_when(
@@ -637,7 +605,7 @@ dose_dependence%>%
   theme_minimal()
 ```
 
-graph of microbe treatment vs. burst 
+graph of microbe treatment vs. burst.  
 ```{r}
 dose_dependence%>%
   mutate(timepoint=factor(timepoint,
